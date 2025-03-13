@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Signup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/student_signup.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <main>
+        <h1>Student Signup</h1>
+        
+        <form class="signup" id="signupForm" action="PHP Script/student_signup.php" method="post">
+            <div class="input-group">
+                <label for="name">Name</label>
+                <input 
+                    type="text" 
+                    id="name" 
+                    name="name"
+                    placeholder="Enter Your Name Please"
+                    required
+                    minlength="2"
+                    pattern="[A-Za-z ]{2,50}">
+                <small class="hint">Only letters and spaces (e.g., John Doe)</small>
+            </div>
+
+            <div class="input-group">
+                <label for="username">Username</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username"
+                    placeholder="Enter Your Username Please"
+                    required
+                    minlength="5"
+                    pattern="[A-Za-z0-9_]{5,20}">
+                <small class="hint">5-20 characters (letters, numbers and underscores are allowed)</small>
+            </div>
+
+            <div class="input-group">
+                <label for="email">E-mail</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email"
+                    placeholder="Enter Your Email Please"
+                    required
+                    pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$">
+                <small class="hint">Example: student@example.com</small>
+            </div>
+
+            <div class="input-group">
+                <label for="phone">Phone</label>
+                <input 
+                    type="tel" 
+                    id="phone" 
+                    name="phone"
+                    placeholder="Enter Your Phone Please"
+                    required
+                    pattern="[0-9]{10}">
+                <small class="hint">Enter a 10-digit phone number (e.g., 9876543210)</small>
+            </div>
+
+            <div class="input-group">
+                <label for="rollno">Roll Number</label>
+                <input 
+                    type="text" 
+                    id="rollno" 
+                    name="rollno"
+                    placeholder="Enter Your Roll No. Please"
+                    required
+                    pattern="[0-9]{11}">
+                <small class="hint">Enter your 11-digit roll number</small>
+                <div id="rollStatus"></div>
+            </div>
+
+            <div class="btn">
+                <button type="button" onclick="window.location.href='student_login.html'">Back</button>
+                <button type="submit">Submit</button>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        // Check roll number in real-time
+        document.getElementById('rollno').addEventListener('blur', function() {
+            const rollno = this.value;
+            if (rollno.length === 11 && /^\d+$/.test(rollno)) {
+                // Show loading indicator
+                document.getElementById('rollStatus').innerHTML = '<span style="color: orange;">Checking roll number...</span>';
+                
+                // Make AJAX request to verify roll number
+                fetch('PHP Script/student_signup.php?check_roll=' + rollno)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.valid) {
+                            document.getElementById('rollStatus').innerHTML = 
+                                '<span style="color: green;">Roll number verified!</span>';
+                        } else {
+                            document.getElementById('rollStatus').innerHTML = 
+                                '<span style="color: red;">Roll number not found in our records!</span>';
+                            
+                            Swal.fire({
+                                title: "Roll Number Not Recognized",
+                                text: "This roll number is not in our system. Please contact your institute for assistance.",
+                                icon: "warning",
+                                confirmButtonText: "OK"
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        document.getElementById('rollStatus').innerHTML = 
+                            '<span style="color: red;">Error checking roll number</span>';
+                    });
+            }
+        });
+
+        document.getElementById('signupForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            if (this.checkValidity()) {
+                // Create FormData object
+                const formData = new FormData(this);
+                
+                // Send data to PHP using fetch
+                fetch('PHP Script/student_signup.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        Swal.fire({
+                            title: "Signup Successful!",
+                            text: "You have registered yourself successfully!",
+                            icon: "success",
+                            confirmButtonText: "Go to Login"
+                        }).then(() => {
+                            window.location.href = "student_login.html";
+                        });
+                    } else {
+                        Swal.fire({
+                            title: "Error",
+                            text: data.message,
+                            icon: "error",
+                            confirmButtonText: "OK"
+                        });
+                    }
+                })
+                .catch(error => {
+                    Swal.fire({
+                        title: "Error",
+                        text: "An error occurred during registration",
+                        icon: "error",
+                        confirmButtonText: "OK"
+                    });
+                });
+            } else {
+                this.reportValidity();
+            }
+        });
+    </script>
+</body>
+</html>

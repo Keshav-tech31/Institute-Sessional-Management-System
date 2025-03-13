@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Student</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/update_student.css">
+</head>
+<body>
+    <div class="page-header">
+        <button class="back-button" onclick="goToDashboard()">
+            <span class="back-arrow">←</span> Back to Dashboard
+        </button>
+        <h2>Update Student</h2>
+    </div>
+
+    <div class="search-container">
+        <div class="search-form">
+            <div class="form-group">
+                <label for="search_roll">Search by Roll Number</label>
+                <div class="search-input-container">
+                    <input type="text" id="search_roll" placeholder="Enter roll number">
+                    <button id="searchBtn" onclick="searchStudent()">Search</button>
+                </div>
+                <div id="search_error" class="error-message">No student found with this roll number.</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="studentFormContainer" class="form-container" style="display: none;">
+        <form id="studentForm" action="PHP Script/update_student.php" method="post">
+            <input type="hidden" name="original_roll_no" id="original_roll_no">
+            <input type="hidden" name="original_semester" id="original_semester">
+            
+            <div class="form-group">
+                <label for="student_name">Name of the Student</label>
+                <input type="text" name="student_name" id="student_name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="branch_name">Branch</label>
+                <select name="branch_name" id="branch_name" required>
+                    <option value="#">Select Branch</option>
+                    <option value="CSE">Computer Science & Engineering</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="semester">Semester</label>
+                <select name="semester" id="semester" required>
+                    <option value="#">Select Semester</option>
+                    <option value="III">Third Semester</option>
+                    <option value="IV">Fourth Semester</option>
+                    <option value="V">Fifth Semester</option>
+                    <option value="VI">Sixth Semester</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="roll_no">Roll Number</label>
+                <input type="text" name="roll_no" id="roll_no" required>
+                <div id="roll_checking" class="checking-message">Checking roll number availability...</div>
+                <div id="roll_error" class="error-message">This roll number already exists in the database.</div>
+                <div id="roll_success" class="success-message">Roll number is available.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="dob">Date of Birth</label>
+                <input type="date" name="dob" id="dob">
+            </div>
+
+            <div class="button-container">
+                <button type="submit" id="updateBtn">Update Student</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Success Popup -->
+    <div id="successPopup" class="popup">
+        <div class="popup-content">
+            <h3>Student Updated Successfully!</h3>
+            <button class="update-more-btn" onclick="updateMoreStudents()">Update More Students</button>
+            <button class="go-home-btn" onclick="goToHome()">Go to Manage Student</button>
+        </div>
+    </div>
+
+    <script>
+        // Variables to track validation state
+        let isRollNumberValid = true; // Default true because original roll number is always valid
+        let rollCheckTimeout = null;
+        let originalRollNo = '';
+        
+        // Function to search for student
+        function searchStudent() {
+            const rollNo = document.getElementById('search_roll').value.trim();
+            const searchError = document.getElementById('search_error');
+            
+            if (rollNo === '') {
+                alert('Please enter a roll number to search.');
+                return;
+            }
+            
+            searchError.style.display = 'none';
+            
+            // Make AJAX request to search for student
+            fetch(`PHP Script/update_student.php?search_roll=${rollNo}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Student found, populate form
+                        document.getElementById('studentFormContainer').style.display = 'block';
+                        document.getElementById('student_name').value = data.student.student_name;
+                        document.getElementById('branch_name').value = data.student.branch_name;
+                        document.getElementById('semester').value = data.student.semester;
+                        document.getElementById('roll_no').value = data.student.roll_no;
+                        document.getElementById('dob').value = data.student.dob;
+                        
+                        // Set original values for reference during update
+                        document.getElementById('original_roll_no').value = data.student.roll_no;
+                        document.getElementById('original_semester').value = data.student.semester;
+                        
+                        // Store original roll number for validation comparison
+                        originalRollNo = data.student.roll_no;
+                        
+                        // Reset validation visuals
+                        document.getElementById('roll_no').classList.remove('error-field', 'success-field');
+                        document.getElementById('roll_error').style.display = 'none';
+                        document.getElementById('roll_success').style.display = 'none';
+                        document.getElementById('roll_checking').style.display = 'none';
+                        
+                        // Enable update button
+                        document.getElementById('updateBtn').disabled = false;
+                    } else {
+                        // Student not found
+                        searchError.style.display = 'block';
+                        document.getElementById('studentFormContainer').style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while searching for the student.');
+                });
+        }
+        
+        // Check if roll number is already in use (only if changed from original)
+        document.getElementById('roll_no').addEventListener('input', function() {
+            const rollNo = this.value.trim();
+            const rollChecking = document.getElementById('roll_checking');
+            const rollError = document.getElementById('roll_error');
+            const rollSuccess = document.getElementById('roll_success');
+            const updateBtn = document.getElementById('updateBtn');
+            
+            // Reset previous states
+            this.classList.remove('error-field', 'success-field');
+            rollError.style.display = 'none';
+            rollSuccess.style.display = 'none';
+            
+            // If roll number hasn't changed from original, it's valid
+            if (rollNo === originalRollNo) {
+                isRollNumberValid = true;
+                updateBtn.disabled = false;
+                return;
+            }
+            
+            if (rollNo.length > 0) {
+                // Clear previous timeout
+                if (rollCheckTimeout) {
+                    clearTimeout(rollCheckTimeout);
+                }
+                
+                // Show checking message
+                rollChecking.style.display = 'block';
+                
+                // Set a timeout to prevent too many requests while typing
+                rollCheckTimeout = setTimeout(function() {
+                    // Make AJAX request to check roll number
+                    fetch(`PHP Script/update_student.php?check_roll=${rollNo}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            rollChecking.style.display = 'none';
+                            
+                            if (data.available) {
+                                // Roll number is available
+                                document.getElementById('roll_no').classList.add('success-field');
+                                rollSuccess.style.display = 'block';
+                                isRollNumberValid = true;
+                                updateBtn.disabled = false;
+                            } else {
+                                // Roll number already exists
+                                document.getElementById('roll_no').classList.add('error-field');
+                                rollError.style.display = 'block';
+                                isRollNumberValid = false;
+                                updateBtn.disabled = true;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            rollChecking.style.display = 'none';
+                        });
+                }, 500); // Wait 500ms after user stops typing
+            } else {
+                rollChecking.style.display = 'none';
+                isRollNumberValid = false;
+                updateBtn.disabled = false; // Enable button, but form won't submit due to required attribute
+            }
+        });
+        
+        // Submit form using AJAX
+        document.getElementById('studentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const rollNo = document.getElementById('roll_no').value.trim();
+            
+            if (rollNo === '') {
+                alert('Please enter a roll number.');
+                return false;
+            }
+            
+            // If roll number hasn't changed, no need to check again
+            if (rollNo === originalRollNo) {
+                submitFormData();
+                return;
+            }
+            
+            // Check roll number one more time before submission
+            fetch(`PHP Script/update_student.php?check_roll=${rollNo}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.available) {
+                        // Roll number is available, proceed with form submission
+                        submitFormData();
+                    } else {
+                        // Roll number is not available
+                        alert('This roll number is already in use. Please use a different roll number.');
+                        document.getElementById('roll_no').classList.add('error-field');
+                        document.getElementById('roll_error').style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+        
+        function submitFormData() {
+            var formData = new FormData(document.getElementById('studentForm'));
+            
+            fetch('PHP Script/update_student.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Show success popup
+                    document.getElementById('successPopup').style.display = 'block';
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while updating the student.');
+            });
+        }
+        
+        // Function to update more students
+        function updateMoreStudents() {
+            // Reset form and search
+            document.getElementById('studentForm').reset();
+            document.getElementById('search_roll').value = '';
+            // Hide popup and form
+            document.getElementById('successPopup').style.display = 'none';
+            document.getElementById('studentFormContainer').style.display = 'none';
+            // Reset validation states
+            document.getElementById('roll_no').classList.remove('error-field', 'success-field');
+            document.getElementById('roll_error').style.display = 'none';
+            document.getElementById('roll_success').style.display = 'none';
+            document.getElementById('roll_checking').style.display = 'none';
+            document.getElementById('search_error').style.display = 'none';
+            document.getElementById('updateBtn').disabled = false;
+            isRollNumberValid = true;
+            originalRollNo = '';
+        }
+        
+        // Function to go to home page
+        function goToHome() {
+            window.location.href = 'admin_dashboard.php';
+        }
+
+        // Function to go to dashboard
+        function goToDashboard() {
+            window.location.href = 'manage_student.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Results</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/view_result.css">
+</head>
+<body>
+    <div class="page-header">
+        <button class="back-button" onclick="goToDashboard()">
+            <span class="back-arrow">←</span> Back to Dashboard
+        </button>
+        <h2>View Results</h2>
+    </div>
+
+    <div class="selection-container">
+        <div class="card-container">
+            <div class="card" onclick="location.href='PHP Script/view_marks.php'">
+                <div class="card-icon core-icon">C</div>
+                <h3>View Marks for Core Subjects</h3>
+                <p>View class test, mid-term, attendance and sessional marks for core theory and practical subjects</p>
+            </div>
+            
+            <div class="card" onclick="location.href='PHP Script/view_additional_marks.php'">
+                <div class="card-icon additional-icon">A</div>
+                <h3>View Marks for Additional Subjects</h3>
+                <p>View performance and assessment marks for additional subjects</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to go to dashboard
+        function goToDashboard() {
+            window.location.href = 'admin_dashboard.php';
+        }
+    </script>
+</body>
+</html>
+

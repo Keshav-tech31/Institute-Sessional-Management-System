@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Faculties</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/manage_faculty.css">
+</head>
+<body>
+    <div class="page-header">
+        <button class="back-button" onclick="goToDashboard()">
+            <span class="back-arrow">←</span> Back to Dashboard
+        </button>
+        <h2>Manage Faculties</h2>
+    </div>
+
+    <div class="container">
+        <!-- Add Faculty Form -->
+        <div class="form-container">
+            <h3>Add New Faculty</h3>
+            <form id="facultyForm" action="PHP Script/manage_faculty.php" method="post">
+                <div class="form-group">
+                    <label for="faculty_name">Full Name</label>
+                    <input type="text" name="faculty_name" id="faculty_name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone_number">Phone Number</label>
+                    <input type="tel" name="phone_number" id="phone_number" pattern="[0-9]{10}" required>
+                    <small>Format: 10 digit mobile number</small>
+                    <div id="phone_checking" class="checking-message">Checking phone number availability...</div>
+                    <div id="phone_error" class="error-message">This phone number is already registered.</div>
+                    <div id="phone_success" class="success-message">Phone number is available.</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="designation">Designation</label>
+                    <select name="designation" id="designation" required>
+                        <option value="#">Select Designation</option>
+                        <option value="PROFESSOR">Professor</option>
+                        <option value="ASSOCIATE_PROFESSOR">Associate Professor</option>
+                        <option value="ASSISTANT_PROFESSOR">Assistant Professor</option>
+                        <option value="LECTURER">Lecturer</option>
+                        <option value="HEAD_OF_DEPARTMENT">Head of Department</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="department">Department</label>
+                    <select name="department" id="department" required>
+                        <option value="#">Select Department</option>
+                        <option value="COMPUTER_SCIENCE">Computer Science & Engineering</option>
+                    </select>
+                </div>
+
+                <div class="button-container">
+                    <button type="submit" id="submitBtn">Add Faculty</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Faculty List -->
+        <div class="list-container">
+            <h3>Faculty List</h3>
+            <div class="filter-controls">
+                <label for="departmentFilter">Filter by Department:</label>
+                <select id="departmentFilter" onchange="loadFaculties()">
+                    <option value="all">All Departments</option>
+                    <option value="COMPUTER_SCIENCE">Computer Science & Engineering</option>
+                </select>
+
+                <label for="designationFilter">Filter by Designation:</label>
+                <select id="designationFilter" onchange="loadFaculties()">
+                    <option value="all">All Designations</option>
+                    <option value="PROFESSOR">Professor</option>
+                    <option value="ASSOCIATE_PROFESSOR">Associate Professor</option>
+                    <option value="ASSISTANT_PROFESSOR">Assistant Professor</option>
+                    <option value="LECTURER">Lecturer</option>
+                    <option value="HEAD_OF_DEPARTMENT">Head of Department</option>
+                </select>
+            </div>
+            <div class="table-container">
+                <table id="facultiesTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Phone Number</th>
+                            <th>Designation</th>
+                            <th>Department</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="facultiesTableBody">
+                        <!-- Faculty data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Popup -->
+    <div id="successPopup" class="popup">
+        <div class="popup-content">
+            <h3>Faculty Added Successfully!</h3>
+            <button class="add-more-btn" onclick="addMoreFaculties()">Add More Faculties</button>
+            <button class="go-home-btn" onclick="goToHome()">Go to Home</button>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Popup -->
+    <div id="deletePopup" class="popup">
+        <div class="popup-content">
+            <h3>Confirm Deletion</h3>
+            <p>Are you sure you want to delete this faculty?</p>
+            <input type="hidden" id="deleteFacultyId" value="">
+            <button class="delete-btn" onclick="confirmDelete()">Delete</button>
+            <button class="cancel-btn" onclick="cancelDelete()">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        let isPhoneNumberValid = false;
+        let phoneCheckTimeout = null;
+        
+        // Check if phone number is already in use
+        document.getElementById('phone_number').addEventListener('input', function() {
+            const phoneNumber = this.value.trim();
+            const phoneChecking = document.getElementById('phone_checking');
+            const phoneError = document.getElementById('phone_error');
+            const phoneSuccess = document.getElementById('phone_success');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            // Reset previous states
+            this.classList.remove('error-field', 'success-field');
+            phoneError.style.display = 'none';
+            phoneSuccess.style.display = 'none';
+            
+            if (phoneNumber.length === 10 && /^\d{10}$/.test(phoneNumber)) {
+                // Clear previous timeout
+                if (phoneCheckTimeout) {
+                    clearTimeout(phoneCheckTimeout);
+                }
+                
+                // Show checking message
+                phoneChecking.style.display = 'block';
+                
+                // Set a timeout to prevent too many requests while typing
+                phoneCheckTimeout = setTimeout(function() {
+                    // Make AJAX request to check phone number
+                    fetch(`PHP Script/manage_faculty.php?check_phone=${phoneNumber}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            phoneChecking.style.display = 'none';
+                            
+                            if (data.available) {
+                                // Phone number is available
+                                document.getElementById('phone_number').classList.add('success-field');
+                                phoneSuccess.style.display = 'block';
+                                isPhoneNumberValid = true;
+                                submitBtn.disabled = false;
+                            } else {
+                                // Phone number already exists
+                                document.getElementById('phone_number').classList.add('error-field');
+                                phoneError.style.display = 'block';
+                                isPhoneNumberValid = false;
+                                submitBtn.disabled = true;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            phoneChecking.style.display = 'none';
+                        });
+                }, 500); // Wait 500ms after user stops typing
+            } else {
+                phoneChecking.style.display = 'none';
+                isPhoneNumberValid = false;
+                submitBtn.disabled = false;
+            }
+        });
+        
+        // Submit form using AJAX
+        document.getElementById('facultyForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const phoneNumber = document.getElementById('phone_number').value.trim();
+            
+            if (phoneNumber === '' || phoneNumber.length !== 10) {
+                alert('Please enter a valid 10-digit phone number.');
+                return false;
+            }
+            
+            // Check phone number one more time before submission
+            fetch(`PHP Script/manage_faculty.php?check_phone=${phoneNumber}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.available) {
+                        // Phone number is available, proceed with form submission
+                        var formData = new FormData(document.getElementById('facultyForm'));
+                        
+                        fetch('PHP Script/manage_faculty.php', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                // Show success popup
+                                document.getElementById('successPopup').style.display = 'block';
+                                // Reload faculty list
+                                loadFaculties();
+                            } else {
+                                alert('Error: ' + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                    } else {
+                        // Phone number is not available
+                        alert('This phone number is already registered. Please use a different phone number.');
+                        document.getElementById('phone_number').classList.add('error-field');
+                        document.getElementById('phone_error').style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+        
+        // Load faculties when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFaculties();
+        });
+        
+        // Function to load faculties
+        function loadFaculties() {
+            const departmentFilter = document.getElementById('departmentFilter').value;
+            const designationFilter = document.getElementById('designationFilter').value;
+            const tableBody = document.getElementById('facultiesTableBody');
+            
+            // Show loading state
+            tableBody.innerHTML = '<tr><td colspan="5" class="loading-row">Loading faculties...</td></tr>';
+            
+            fetch(`PHP Script/manage_faculty.php?action=list&department=${departmentFilter}&designation=${designationFilter}`)
+                .then(response => response.json())
+                .then(data => {
+                    tableBody.innerHTML = '';
+                    
+                    if (data.status === 'success') {
+                        if (data.faculties.length === 0) {
+                            tableBody.innerHTML = '<tr><td colspan="5" class="empty-row">No faculties found</td></tr>';
+                        } else {
+                            data.faculties.forEach(faculty => {
+                                tableBody.innerHTML += `
+                                    <tr>
+                                        <td>${faculty.faculty_name}</td>
+                                        <td>${faculty.phone_number}</td>
+                                        <td>${faculty.designation.replace(/_/g, ' ')}</td>
+                                        <td>${faculty.department.replace('_', ' ')}</td>
+                                        <td>
+                                            <button class="delete-button" onclick="showDeletePopup('${faculty.id}')">Delete</button>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                        }
+                    } else {
+                        tableBody.innerHTML = `<tr><td colspan="5" class="error-row">${data.message}</td></tr>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    tableBody.innerHTML = '<tr><td colspan="5" class="error-row">Error loading faculties</td></tr>';
+                });
+        }
+        
+        // Function to show delete confirmation popup
+        function showDeletePopup(facultyId) {
+            document.getElementById('deleteFacultyId').value = facultyId;
+            document.getElementById('deletePopup').style.display = 'block';
+        }
+        
+        // Function to confirm delete
+        function confirmDelete() {
+            const facultyId = document.getElementById('deleteFacultyId').value;
+            
+            fetch(`PHP Script/manage_faculty.php?action=delete&id=${facultyId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('deletePopup').style.display = 'none';
+                
+                if (data.status === 'success') {
+                    // Reload faculty list
+                    loadFaculties();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('deletePopup').style.display = 'none';
+                alert('Error deleting faculty');
+            });
+        }
+        
+        // Function to cancel delete
+        function cancelDelete() {
+            document.getElementById('deletePopup').style.display = 'none';
+        }
+        
+        // Function to add more faculties
+        function addMoreFaculties() {
+            // Reset form
+            document.getElementById('facultyForm').reset();
+            // Hide popup
+            document.getElementById('successPopup').style.display = 'none';
+            // Reset validation states
+            document.getElementById('phone_number').classList.remove('error-field', 'success-field');
+            document.getElementById('phone_error').style.display = 'none';
+            document.getElementById('phone_success').style.display = 'none';
+            document.getElementById('phone_checking').style.display = 'none';
+            document.getElementById('submitBtn').disabled = false;
+            isPhoneNumberValid = false;
+        }
+        
+        // Function to go to home page
+        function goToHome() {
+            window.location.href = 'admin_dashboard.php';
+        }
+
+        // Function to go to dashboard
+        function goToDashboard() {
+            window.location.href = 'admin_dashboard.php';
+        }
+    </script>
+</body>
+</html>

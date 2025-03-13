@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Assign Subjects to Faculty</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="CSS/assign_faculty_subjects.css" />
+    <style>
+      /* Success Popup Styles */
+      #successPopup {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .success-popup-content {
+        background-color: white;
+        padding: 30px;
+        border-radius: 8px;
+        text-align: center;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .success-popup-content img {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 20px;
+      }
+
+      .success-popup-content h3 {
+        color: var(--success-color);
+        margin-bottom: 15px;
+      }
+
+      .success-popup-content p {
+        color: var(--secondary-color);
+        margin-bottom: 20px;
+      }
+
+      .success-popup-close {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .success-popup-close:hover {
+        background-color: var(--hover-color);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-header">
+      <button class="back-button" onclick="goToDashboard()">
+        <span class="back-arrow">←</span> Back to Dashboard
+      </button>
+      <h2>Assign Subjects to Faculty</h2>
+    </div>
+
+    <div class="container">
+      <!-- Assign Subject Form -->
+      <div class="form-container">
+        <h3>Assign Subjects</h3>
+        <form
+          id="assignSubjectForm"
+          action="PHP Script/assign_faculty_subjects.php"
+          method="post"
+        >
+          <div class="form-group">
+            <label for="faculty_name">Select Faculty</label>
+            <select
+              name="faculty_name"
+              id="faculty_name"
+              required
+              onchange="loadFacultyDetails()"
+            >
+              <option value="#">Select Faculty</option>
+              <!-- Faculty names will be dynamically populated here -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="semester">Select Semester</label>
+            <select
+              name="semester"
+              id="semester"
+              required
+              onchange="loadSubjects()"
+            >
+              <option value="#">Select Semester</option>
+              <option value="III">Third Semester</option>
+              <option value="IV">Fourth Semester</option>
+              <option value="V">Fifth Semester</option>
+              <option value="VI">Sixth Semester</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Select Subjects</label>
+            <div id="subjectsContainer" class="subjects-checkbox-container">
+              <!-- Subjects will be dynamically populated here as checkboxes -->
+              <p>Please select a semester to view subjects</p>
+            </div>
+          </div>
+
+          <div class="button-container">
+            <button type="submit" id="submitBtn">Assign Subjects</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Assigned Subjects List -->
+      <div class="list-container">
+        <h3>Currently Assigned Subjects</h3>
+        <div class="filter-controls">
+          <label for="facultyFilter">Filter by Faculty:</label>
+          <select id="facultyFilter" onchange="loadAssignedSubjects()">
+            <option value="all">All Faculties</option>
+            <!-- Faculty names will be dynamically populated here -->
+          </select>
+
+          <label for="semesterFilter">Filter by Semester:</label>
+          <select id="semesterFilter" onchange="loadAssignedSubjects()">
+            <option value="all">All Semesters</option>
+            <option value="III">Third Semester</option>
+            <option value="IV">Fourth Semester</option>
+            <option value="V">Fifth Semester</option>
+            <option value="VI">Sixth Semester</option>
+          </select>
+        </div>
+        <div class="table-container">
+          <table id="assignedSubjectsTable">
+            <thead>
+              <tr>
+                <th>Faculty Name</th>
+                <th>Subject</th>
+                <th>Subject Code</th>
+                <th>Semester</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="assignedSubjectsTableBody">
+              <!-- Assigned subjects will be loaded here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Popup -->
+    <div id="successPopup">
+      <div class="success-popup-content">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          width="80"
+          height="80"
+          fill="#34a853"
+        >
+          <path
+            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+          />
+        </svg>
+        <h3>Subjects Assigned Successfully!</h3>
+        <p id="successMessage">Subjects have been assigned to the faculty.</p>
+        <button class="success-popup-close" onclick="closeSuccessPopup()">
+          Close
+        </button>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Popup -->
+    <div id="deletePopup" class="popup">
+      <div class="popup-content">
+        <h3>Confirm Deletion</h3>
+        <p>Are you sure you want to remove this subject assignment?</p>
+        <input type="hidden" id="deleteAssignmentId" value="" />
+        <button class="delete-btn" onclick="confirmDelete()">Delete</button>
+        <button class="cancel-btn" onclick="cancelDelete()">Cancel</button>
+      </div>
+    </div>
+
+    <script>
+      // Load faculty names when page loads
+      document.addEventListener("DOMContentLoaded", function () {
+        loadFacultyNames();
+        loadAssignedSubjects();
+      });
+
+      // Function to load faculty names
+      function loadFacultyNames() {
+        const facultySelect = document.getElementById("faculty_name");
+        const facultyFilter = document.getElementById("facultyFilter");
+
+        fetch("PHP Script/manage_faculty.php?action=list")
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success") {
+              // Clear existing options
+              facultySelect.innerHTML =
+                '<option value="#">Select Faculty</option>';
+              facultyFilter.innerHTML =
+                '<option value="all">All Faculties</option>';
+
+              // Populate faculty dropdown
+              data.faculties.forEach((faculty) => {
+                const option = document.createElement("option");
+                option.value = faculty.id;
+                option.textContent = faculty.faculty_name;
+                facultySelect.appendChild(option);
+
+                // Also populate faculty filter
+                const filterOption = option.cloneNode(true);
+                facultyFilter.appendChild(filterOption);
+              });
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+
+      // Function to load subjects based on selected semester
+      function loadSubjects() {
+        const semester = document.getElementById("semester").value;
+        const subjectsContainer = document.getElementById("subjectsContainer");
+
+        // Clear existing options
+        subjectsContainer.innerHTML = "";
+
+        if (semester === "#") {
+          subjectsContainer.innerHTML =
+            "<p>Please select a semester to view subjects</p>";
+          return;
+        }
+
+        fetch(`PHP Script/manage_subject.php?action=list&semester=${semester}`)
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success") {
+              if (data.subjects.length === 0) {
+                subjectsContainer.innerHTML =
+                  "<p>No subjects found for this semester</p>";
+                return;
+              }
+
+              // Create checkbox for select all
+        
+              const selectAllDiv = document.createElement("div");
+              selectAllDiv.id = "selectAllSubjects-container";
+
+              const selectAllCheckbox = document.createElement("input");
+              selectAllCheckbox.type = "checkbox";
+              selectAllCheckbox.id = "selectAllSubjects";
+              selectAllCheckbox.addEventListener("change", function () {
+                const subjectCheckboxes = document.querySelectorAll(
+                  'input[name="subjects[]"]'
+                );
+                subjectCheckboxes.forEach((checkbox) => {
+                  checkbox.checked = this.checked;
+                });
+              });
+
+              const selectAllLabel = document.createElement("label");
+              selectAllLabel.htmlFor = "selectAllSubjects";
+              selectAllLabel.textContent = "Select All Subjects";
+
+              selectAllDiv.appendChild(selectAllCheckbox);
+              selectAllDiv.appendChild(selectAllLabel);
+              subjectsContainer.appendChild(selectAllDiv);
+
+              selectAllDiv.appendChild(selectAllCheckbox);
+              selectAllDiv.appendChild(selectAllLabel);
+              subjectsContainer.appendChild(selectAllDiv);
+
+              // Create checkboxes for each subject
+              data.subjects.forEach((subject) => {
+                const subjectDiv = document.createElement("div");
+                subjectDiv.className = "subject-checkbox";
+
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.name = "subjects[]";
+                checkbox.value = subject.id;
+                checkbox.id = `subject-${subject.id}`;
+
+                const label = document.createElement("label");
+                label.htmlFor = `subject-${subject.id}`;
+                label.textContent = `${subject.subject_code} - ${subject.subject_name}`;
+
+                subjectDiv.appendChild(checkbox);
+                subjectDiv.appendChild(label);
+                subjectsContainer.appendChild(subjectDiv);
+              });
+            } else {
+              subjectsContainer.innerHTML = "<p>Error loading subjects</p>";
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            subjectsContainer.innerHTML = "<p>Error loading subjects</p>";
+          });
+      }
+
+      // Function to submit form using AJAX
+      document
+        .getElementById("assignSubjectForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          // Validate that at least one subject is selected
+          const selectedSubjects = document.querySelectorAll(
+            'input[name="subjects[]"]:checked'
+          );
+          if (selectedSubjects.length === 0) {
+            alert("Please select at least one subject to assign.");
+            return;
+          }
+
+          const formData = new FormData(this);
+
+          fetch("PHP Script/assign_faculty_subjects.php", {
+            method: "POST",
+            body: formData,
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (
+                data.status === "success" ||
+                data.status === "partial_success"
+              ) {
+                // Show success popup
+                const successPopup = document.getElementById("successPopup");
+                const successMessage =
+                  document.getElementById("successMessage");
+                successMessage.textContent = data.message;
+                successPopup.style.display = "flex";
+
+                loadAssignedSubjects(); // Refresh the list
+                // Reset form
+                this.reset();
+                document.getElementById("subjectsContainer").innerHTML =
+                  "<p>Please select a semester to view subjects</p>";
+              } else {
+                alert("Error: " + data.message);
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              alert("An error occurred while assigning subjects.");
+            });
+        });
+
+      // Function to close success popup
+      function closeSuccessPopup() {
+        const successPopup = document.getElementById("successPopup");
+        successPopup.style.display = "none";
+      }
+
+      // Function to load assigned subjects
+      function loadAssignedSubjects() {
+        const facultyFilter = document.getElementById("facultyFilter").value;
+        const semesterFilter = document.getElementById("semesterFilter").value;
+        const tableBody = document.getElementById("assignedSubjectsTableBody");
+
+        // Show loading state
+        tableBody.innerHTML =
+          '<tr><td colspan="5" class="loading-row">Loading assigned subjects...</td></tr>';
+
+        fetch(
+          `PHP Script/assign_faculty_subjects.php?action=list&faculty=${facultyFilter}&semester=${semesterFilter}`
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            tableBody.innerHTML = "";
+
+            if (data.status === "success") {
+              if (data.assignments.length === 0) {
+                tableBody.innerHTML =
+                  '<tr><td colspan="5" class="empty-row">No subject assignments found</td></tr>';
+              } else {
+                data.assignments.forEach((assignment) => {
+                  tableBody.innerHTML += `
+                                    <tr>
+                                        <td>${assignment.faculty_name}</td>
+                                        <td>${assignment.subject_name}</td>
+                                        <td>${assignment.subject_code}</td>
+                                        <td>${assignment.semester}</td>
+                                        <td>
+                                            <button class="delete-button" onclick="showDeletePopup('${assignment.id}')">Delete</button>
+                                        </td>
+                                    </tr>
+                                `;
+                });
+              }
+            } else {
+              tableBody.innerHTML = `<tr><td colspan="5" class="error-row">${data.message}</td></tr>`;
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            tableBody.innerHTML =
+              '<tr><td colspan="5" class="error-row">Error loading assigned subjects</td></tr>';
+          });
+      }
+
+      // Function to show delete confirmation popup
+      function showDeletePopup(assignmentId) {
+        document.getElementById("deleteAssignmentId").value = assignmentId;
+        document.getElementById("deletePopup").style.display = "block";
+      }
+
+      // Function to confirm delete
+      function confirmDelete() {
+        const assignmentId =
+          document.getElementById("deleteAssignmentId").value;
+
+        fetch(
+          `PHP Script/assign_faculty_subjects.php?action=delete&id=${assignmentId}`,
+          {
+            method: "DELETE",
+          }
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("deletePopup").style.display = "none";
+
+            if (data.status === "success") {
+              loadAssignedSubjects(); // Refresh the list
+            } else {
+              alert("Error: " + data.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            document.getElementById("deletePopup").style.display = "none";
+            alert("Error deleting subject assignment");
+          });
+      }
+
+      // Function to cancel delete
+      function cancelDelete() {
+        document.getElementById("deletePopup").style.display = "none";
+      }
+
+      // Function to go to dashboard
+      function goToDashboard() {
+        window.location.href = "admin_dashboard.php";
+      }
+    </script>
+  </body>
+</html>

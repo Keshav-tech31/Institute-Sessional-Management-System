@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Other Subject Marks</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="CSS/additional_marks.css" />
+  </head>
+  <body>
+    <div class="page-header">
+      <button class="back-button" onclick="goToMarkSelection()">
+        <span class="back-arrow">←</span> Back to Upload Marks
+      </button>
+      <h2>Manage Other Subject Marks</h2>
+    </div>
+
+    <div class="container">
+      <!-- Selection Form -->
+      <div class="selection-form">
+        <form id="selectionForm">
+          <div class="form-group">
+            <label for="semester">Select Semester</label>
+            <select
+              name="semester"
+              id="semester"
+              required
+              onchange="loadSubjects()"
+            >
+              <option value="">Select Semester</option>
+              <option value="III">Third Semester</option>
+              <option value="IV">Fourth Semester</option>
+              <option value="V">Fifth Semester</option>
+              <option value="VI">Sixth Semester</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="subject">Select Subject</label>
+            <select
+              name="subject"
+              id="subject"
+              required
+              disabled
+              onchange="loadStudents()"
+            >
+              <option value="">Select Subject</option>
+              <!-- Subjects will be loaded dynamically -->
+            </select>
+          </div>
+        </form>
+      </div>
+
+      <!-- Students Marks Form -->
+      <div class="marks-container" id="marksContainer">
+        <h3>Student Marks</h3>
+        <div class="alert success-alert" id="saveSuccess">
+          Marks saved successfully!
+        </div>
+        <div class="alert error-alert" id="saveError">
+          Error saving marks. Please try again.
+        </div>
+
+        <form id="marksForm">
+          <div class="marks-table-container">
+            <table class="marks-table" id="marksTable">
+              <thead id="tableHeader">
+                <!-- Table headers will be dynamically loaded based on subject type -->
+              </thead>
+              <tbody id="studentTableBody">
+                <!-- Student data will be loaded here -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="buttons-container">
+            <button
+              type="button"
+              id="saveButton"
+              onclick="saveMarks()"
+              disabled
+            >
+              Save Marks
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Dialog -->
+    <div id="deleteConfirmDialog" class="popup">
+      <div class="popup-content">
+        <h3>Confirm Deletion</h3>
+        <p id="deleteConfirmMessage">
+          Are you sure you want to delete marks for this student?
+        </p>
+        <button class="delete-btn" id="confirmDeleteBtn">Delete</button>
+        <button class="cancel-btn" id="cancelDeleteBtn">Cancel</button>
+      </div>
+    </div>
+
+    <script>
+      // Global variables
+      let selectedSemester = "";
+      let selectedSubject = "";
+      let selectedSubjectType = "";
+      let isDataLoaded = false;
+
+      // Function to load subjects based on selected semester
+      function loadSubjects() {
+        const semesterSelect = document.getElementById("semester");
+        const subjectSelect = document.getElementById("subject");
+        selectedSemester = semesterSelect.value;
+
+        // Reset subject dropdown
+        subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+        subjectSelect.disabled = true;
+
+        // Reset marks form
+        document.getElementById("studentTableBody").innerHTML = "";
+        document.getElementById("tableHeader").innerHTML = "";
+        document.getElementById("saveButton").disabled = true;
+        document.getElementById("saveSuccess").style.display = "none";
+        document.getElementById("saveError").style.display = "none";
+
+        if (selectedSemester) {
+          // Show loading state
+          subjectSelect.innerHTML =
+            '<option value="">Loading subjects...</option>';
+
+          // Fetch other subjects for the selected semester
+          fetch(
+            `PHP Script/other_marks.php?action=get_other_subjects&semester=${selectedSemester}`
+          )
+            .then((response) => response.json())
+            .then((data) => {
+              subjectSelect.innerHTML =
+                '<option value="">Select Subject</option>';
+
+              if (data.status === "success") {
+                data.subjects.forEach((subject) => {
+                  const option = document.createElement("option");
+                  option.value = subject.subject_code;
+                  option.textContent = `${subject.subject_name} (${subject.subject_code})`;
+                  option.dataset.type = subject.subject_type;
+                  subjectSelect.appendChild(option);
+                });
+
+                // Enable subject dropdown
+                subjectSelect.disabled = false;
+              } else {
+                subjectSelect.innerHTML =
+                  '<option value="">No subjects found</option>';
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              subjectSelect.innerHTML =
+                '<option value="">Error loading subjects</option>';
+            });
+        }
+      }
+
+      // Function to load students based on selected semester and subject
+      function loadStudents() {
+        const subjectSelect = document.getElementById("subject");
+        const tableHeader = document.getElementById("tableHeader");
+        const studentTableBody = document.getElementById("studentTableBody");
+        selectedSubject = subjectSelect.value;
+
+        // Get the subject type from the selected option's data attribute
+        const selectedOption =
+          subjectSelect.options[subjectSelect.selectedIndex];
+        selectedSubjectType = selectedOption ? selectedOption.dataset.type : "";
+
+        // Get the subject name
+        const subjectName = selectedOption
+          ? selectedOption.textContent.split("(")[0].trim()
+          : "";
+
+        // Reset table
+        tableHeader.innerHTML = "";
+        studentTableBody.innerHTML = "";
+        document.getElementById("saveButton").disabled = true;
+        document.getElementById("saveSuccess").style.display = "none";
+        document.getElementById("saveError").style.display = "none";
+
+        if (selectedSubject) {
+          // Create table headers based on subject type
+          createTableHeaders(subjectName, selectedSubjectType);
+
+          // Show loading state
+          studentTableBody.innerHTML =
+            '<tr><td colspan="10" class="loading-row">Loading students...</td></tr>';
+
+          // Fetch students for the selected semester
+          fetch(
+            `PHP Script/other_marks.php?action=get_students&semester=${selectedSemester}&subject=${selectedSubject}`
+          )
+            .then((response) => response.json())
+            .then((data) => {
+              studentTableBody.innerHTML = "";
+
+              if (data.status === "success") {
+                if (data.students.length === 0) {
+                  studentTableBody.innerHTML =
+                    '<tr><td colspan="10" class="empty-row">No students found for this semester</td></tr>';
+                } else {
+                  // Add student rows based on subject type
+                  data.students.forEach((student, index) => {
+                    addStudentRow(student, index, selectedSubjectType);
+                  });
+
+                  // Enable save button
+                  document.getElementById("saveButton").disabled = false;
+                  isDataLoaded = true;
+                }
+              } else {
+                studentTableBody.innerHTML = `<tr><td colspan="10" class="error-row">${data.message}</td></tr>`;
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              studentTableBody.innerHTML =
+                '<tr><td colspan="10" class="error-row">Error loading students</td></tr>';
+            });
+        }
+      }
+
+      // Function to create table headers based on subject type
+      function createTableHeaders(subjectName, subjectType) {
+        const tableHeader = document.getElementById("tableHeader");
+        const headerRow = document.createElement("tr");
+
+        // Basic columns that are always present
+        headerRow.innerHTML = `
+            <th>Roll Number</th>
+            <th>Student Name</th>
+          `;
+
+        // Add columns based on subject type
+        if (subjectName.toLowerCase().includes("project work")) {
+          if (subjectName.toLowerCase().includes("major")) {
+            // Major Project Work headers
+            headerRow.innerHTML += `
+          <th>First Review <br/><span class="max-marks">(Max: 10)</span></th>
+          <th>Second Review <br/><span class="max-marks">(Max: 10)</span></th>
+          <th>Viva <br/><span class="max-marks">(Max: 10)</span></th>
+          <th>Practical Work <br/><span class="max-marks">(Max: 15)</span></th>
+          <th>Attendance <br/><span class="max-marks">(Max: 10)</span></th>
+          <th>Total <br/><span class="max-marks">(Max: 55)</span></th>
+        `;
+          } else {
+            // Minor Project Work headers (unchanged)
+            headerRow.innerHTML += `
+          <th>First Review <br/><span class="max-marks">(Max: 10)</span></th>
+          <th>Second Review <br/><span class="max-marks">(Max: 10)</span></th>
+          <th>Viva <br/><span class="max-marks">(Max: 10)</span></th>
+          <th>Practical Work <br/><span class="max-marks">(Max: 10)</span></th>
+          <th>Attendance <br/><span class="max-marks">(Max: 10)</span></th>
+          <th>Total <br/><span class="max-marks">(Max: 50)</span></th>
+        `;
+          }
+        } else if (subjectName.toLowerCase().includes("industrial exposure")) {
+          // Industrial Exposure headers
+          headerRow.innerHTML += `
+              <th>Marks <br/><span class="max-marks">(Max: 25)</span></th>
+            `;
+        } else if (subjectName.toLowerCase().includes("industrial training")) {
+          // Industrial Training headers
+          headerRow.innerHTML += `
+              <th>Marks <br/><span class="max-marks">(Max: 30)</span></th>
+            `;
+        } else if (subjectName.toLowerCase().includes("general proficiency")) {
+          // General Proficiency headers
+          headerRow.innerHTML += `
+              <th>Marks <br/><span class="max-marks">(Max: 25)</span></th>
+            `;
+        } else {
+          // Default headers for other subjects
+          headerRow.innerHTML += `
+              <th>Marks <br/><span class="max-marks">(Max: 30)</span></th>
+            `;
+        }
+
+        // Action column
+        headerRow.innerHTML += `<th>Actions</th>`;
+
+        tableHeader.appendChild(headerRow);
+      }
+
+      // Function to add student row based on subject type
+      // Function to add student row based on subject type
+      function addStudentRow(student, index, subjectType) {
+        const studentTableBody = document.getElementById("studentTableBody");
+        const row = document.createElement("tr");
+        const subjectName = document
+          .getElementById("subject")
+          .options[
+            document.getElementById("subject").selectedIndex
+          ].textContent.split("(")[0]
+          .trim();
+
+        // Add hidden input for student ID
+        const studentIdInput = document.createElement("input");
+        studentIdInput.type = "hidden";
+        studentIdInput.name = `students[${index}][student_id]`;
+        studentIdInput.value = student.id;
+        row.appendChild(studentIdInput);
+
+        // Add roll number cell
+        const rollCell = document.createElement("td");
+        rollCell.textContent = student.roll_no;
+        const rollInput = document.createElement("input");
+        rollInput.type = "hidden";
+        rollInput.name = `students[${index}][roll_no]`;
+        rollInput.value = student.roll_no;
+        rollCell.appendChild(rollInput);
+        row.appendChild(rollCell);
+
+        // Add name cell with hidden input for student_name
+        const nameCell = document.createElement("td");
+        nameCell.textContent = student.student_name;
+        const nameInput = document.createElement("input");
+        nameInput.type = "hidden";
+        nameInput.name = `students[${index}][student_name]`;
+        nameInput.value = student.student_name;
+        nameCell.appendChild(nameInput);
+        row.appendChild(nameCell);
+
+        // Add inputs based on subject type
+        if (subjectName.toLowerCase().includes("project work")) {
+          // Project Work inputs
+
+          // First Review
+          const firstReviewCell = document.createElement("td");
+          const firstReviewInput = document.createElement("input");
+          firstReviewInput.type = "number";
+          firstReviewInput.min = "0";
+          firstReviewInput.max = "10";
+          firstReviewInput.name = `students[${index}][first_review]`;
+          firstReviewInput.value = student.first_review || "";
+          firstReviewInput.oninput = updateTotalMarks;
+          firstReviewInput.dataset.index = index;
+          firstReviewCell.appendChild(firstReviewInput);
+          row.appendChild(firstReviewCell);
+
+          // Second Review
+          const secondReviewCell = document.createElement("td");
+          const secondReviewInput = document.createElement("input");
+          secondReviewInput.type = "number";
+          secondReviewInput.min = "0";
+          secondReviewInput.max = "10";
+          secondReviewInput.name = `students[${index}][second_review]`;
+          secondReviewInput.value = student.second_review || "";
+          secondReviewInput.oninput = updateTotalMarks;
+          secondReviewInput.dataset.index = index;
+          secondReviewCell.appendChild(secondReviewInput);
+          row.appendChild(secondReviewCell);
+
+          // Viva
+          const vivaCell = document.createElement("td");
+          const vivaInput = document.createElement("input");
+          vivaInput.type = "number";
+          vivaInput.min = "0";
+          vivaInput.max = "10";
+          vivaInput.name = `students[${index}][viva]`;
+          vivaInput.value = student.viva || "";
+          vivaInput.oninput = updateTotalMarks;
+          vivaInput.dataset.index = index;
+          vivaCell.appendChild(vivaInput);
+          row.appendChild(vivaCell);
+
+          // Practical Work - Check if it's major project (15 marks) or minor project (10 marks)
+          const practicalCell = document.createElement("td");
+          const practicalInput = document.createElement("input");
+          practicalInput.type = "number";
+          practicalInput.min = "0";
+
+          // Set max value based on project type
+          if (subjectName.toLowerCase().includes("major")) {
+            practicalInput.max = "15"; // Major project: 15 marks
+          } else {
+            practicalInput.max = "10"; // Minor project: 10 marks
+          }
+
+          practicalInput.name = `students[${index}][practical_work]`;
+          practicalInput.value = student.practical_work || "";
+          practicalInput.oninput = updateTotalMarks;
+          practicalInput.dataset.index = index;
+          practicalInput.dataset.projectType = subjectName
+            .toLowerCase()
+            .includes("major")
+            ? "major"
+            : "minor";
+          practicalCell.appendChild(practicalInput);
+          row.appendChild(practicalCell);
+
+          // Attendance
+          const attendanceCell = document.createElement("td");
+          const attendanceInput = document.createElement("input");
+          attendanceInput.type = "number";
+          attendanceInput.min = "0";
+          attendanceInput.max = "10";
+          attendanceInput.name = `students[${index}][attendance]`;
+          attendanceInput.value = student.attendance || "";
+          attendanceInput.oninput = updateTotalMarks;
+          attendanceInput.dataset.index = index;
+          attendanceCell.appendChild(attendanceInput);
+          row.appendChild(attendanceCell);
+
+          // Total marks cell (calculated)
+          const totalCell = document.createElement("td");
+          const totalSpan = document.createElement("span");
+          totalSpan.id = `total_${index}`;
+          totalSpan.className = "total-marks";
+
+          // Calculate total based on project type
+          if (subjectName.toLowerCase().includes("major")) {
+            totalSpan.textContent = calculateProjectTotal(
+              student.first_review || 0,
+              student.second_review || 0,
+              student.viva || 0,
+              student.practical_work || 0,
+              student.attendance || 0,
+              "major"
+            );
+          } else {
+            totalSpan.textContent = calculateProjectTotal(
+              student.first_review || 0,
+              student.second_review || 0,
+              student.viva || 0,
+              student.practical_work || 0,
+              student.attendance || 0,
+              "minor"
+            );
+          }
+
+          totalCell.appendChild(totalSpan);
+          row.appendChild(totalCell);
+        } else {
+          // Single marks input for other subject types
+          const marksCell = document.createElement("td");
+          const marksInput = document.createElement("input");
+          marksInput.type = "number";
+          marksInput.min = "0";
+
+          // Set max value based on subject type
+          if (subjectName.toLowerCase().includes("industrial exposure")) {
+            marksInput.max = "25";
+          } else if (
+            subjectName.toLowerCase().includes("industrial training")
+          ) {
+            marksInput.max = "30";
+          } else if (
+            subjectName.toLowerCase().includes("general proficiency")
+          ) {
+            marksInput.max = "25";
+          } else {
+            marksInput.max = "30";
+          }
+
+          marksInput.name = `students[${index}][marks]`;
+          marksInput.value = student.marks || "";
+          marksCell.appendChild(marksInput);
+          row.appendChild(marksCell);
+        }
+
+        // Add actions cell with delete button
+        const actionsCell = document.createElement("td");
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.className = "delete-button";
+        deleteButton.textContent = "Delete";
+        deleteButton.onclick = function () {
+          confirmDeleteMarks(student.id, student.student_name);
+        };
+        actionsCell.appendChild(deleteButton);
+        row.appendChild(actionsCell);
+
+        studentTableBody.appendChild(row);
+      }
+
+      // Function to calculate total marks for project work
+      function calculateProjectTotal(
+        firstReview,
+        secondReview,
+        viva,
+        practicalWork,
+        attendance,
+        projectType
+      ) {
+        const firstReviewVal = parseFloat(firstReview) || 0;
+        const secondReviewVal = parseFloat(secondReview) || 0;
+        const vivaVal = parseFloat(viva) || 0;
+        const practicalWorkVal = parseFloat(practicalWork) || 0;
+        const attendanceVal = parseFloat(attendance) || 0;
+
+        return (
+          firstReviewVal +
+          secondReviewVal +
+          vivaVal +
+          practicalWorkVal +
+          attendanceVal
+        ).toFixed(1);
+      }
+
+      // Function to update total marks when project work input changes
+      function updateTotalMarks() {
+        const index = this.dataset.index;
+        const row = this.closest("tr");
+        const subjectName = document
+          .getElementById("subject")
+          .options[
+            document.getElementById("subject").selectedIndex
+          ].textContent.split("(")[0]
+          .trim();
+
+        if (subjectName.toLowerCase().includes("project work")) {
+          const firstReview =
+            row.querySelector(`input[name="students[${index}][first_review]"]`)
+              .value || 0;
+          const secondReview =
+            row.querySelector(`input[name="students[${index}][second_review]"]`)
+              .value || 0;
+          const viva =
+            row.querySelector(`input[name="students[${index}][viva]"]`).value ||
+            0;
+          const practicalWork =
+            row.querySelector(
+              `input[name="students[${index}][practical_work]"]`
+            ).value || 0;
+          const attendance =
+            row.querySelector(`input[name="students[${index}][attendance]"]`)
+              .value || 0;
+
+          const totalSpan = document.getElementById(`total_${index}`);
+
+          // Calculate total based on project type
+          if (subjectName.toLowerCase().includes("major")) {
+            totalSpan.textContent = calculateProjectTotal(
+              firstReview,
+              secondReview,
+              viva,
+              practicalWork,
+              attendance,
+              "major"
+            );
+          } else {
+            totalSpan.textContent = calculateProjectTotal(
+              firstReview,
+              secondReview,
+              viva,
+              practicalWork,
+              attendance,
+              "minor"
+            );
+          }
+        }
+      }
+
+      // Function to save marks
+      function saveMarks() {
+        if (!isDataLoaded) return;
+
+        document.getElementById("saveSuccess").style.display = "none";
+        document.getElementById("saveError").style.display = "none";
+
+        // Get form data
+        const formData = new FormData(document.getElementById("marksForm"));
+
+        // Add semester and subject information
+        formData.append("semester", selectedSemester);
+        formData.append("subject_code", selectedSubject);
+        formData.append("action", "save_other_marks");
+
+        // Add subject type for backend processing
+        const subjectName = document
+          .getElementById("subject")
+          .options[
+            document.getElementById("subject").selectedIndex
+          ].textContent.split("(")[0]
+          .trim();
+        formData.append("subject_name", subjectName);
+
+        // Send data to server
+        fetch("PHP Script/other_marks.php", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success") {
+              document.getElementById("saveSuccess").style.display = "block";
+
+              // Scroll to success message
+              document
+                .getElementById("saveSuccess")
+                .scrollIntoView({ behavior: "smooth" });
+
+              // Hide success message after 3 seconds
+              setTimeout(() => {
+                document.getElementById("saveSuccess").style.display = "none";
+              }, 3000);
+            } else {
+              document.getElementById("saveError").style.display = "block";
+              document.getElementById("saveError").textContent =
+                data.message || "Error saving marks. Please try again.";
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            document.getElementById("saveError").style.display = "block";
+            document.getElementById("saveError").textContent =
+              "Network error. Please check your connection and try again.";
+          });
+      }
+
+      // Function to go back to upload marks selection
+      function goToMarkSelection() {
+        window.location.href = "upload_marks.html";
+      }
+
+      // Delete confirmation function
+      let studentToDelete = null;
+      function confirmDeleteMarks(studentId, studentName) {
+        studentToDelete = studentId;
+        document.getElementById(
+          "deleteConfirmMessage"
+        ).textContent = `Are you sure you want to delete marks for ${studentName}?`;
+        document.getElementById("deleteConfirmDialog").style.display = "block";
+      }
+
+      function deleteMarks() {
+        if (!studentToDelete) return;
+
+        const formData = new FormData();
+        formData.append("action", "delete_other_marks");
+        formData.append("semester", selectedSemester);
+        formData.append("subject_code", selectedSubject);
+        formData.append("student_id", studentToDelete);
+
+        fetch("PHP Script/other_marks.php", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success") {
+              document.getElementById("saveSuccess").textContent =
+                "Marks deleted successfully!";
+              document.getElementById("saveSuccess").style.display = "block";
+              // Reload students to refresh the table
+              loadStudents();
+            } else {
+              document.getElementById("saveError").textContent =
+                data.message || "Error deleting marks.";
+              document.getElementById("saveError").style.display = "block";
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            document.getElementById("saveError").textContent =
+              "Network error. Please check your connection.";
+            document.getElementById("saveError").style.display = "block";
+          });
+
+        // Hide the dialog
+        document.getElementById("deleteConfirmDialog").style.display = "none";
+        studentToDelete = null;
+      }
+
+      // Event listeners for delete confirmation dialog
+      document
+        .getElementById("confirmDeleteBtn")
+        .addEventListener("click", deleteMarks);
+      document
+        .getElementById("cancelDeleteBtn")
+        .addEventListener("click", function () {
+          document.getElementById("deleteConfirmDialog").style.display = "none";
+          studentToDelete = null;
+        });
+    </script>
+  </body>
+</html>

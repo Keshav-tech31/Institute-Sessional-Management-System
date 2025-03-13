@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Marks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/upload_marks.css">
+</head>
+<body>
+    <div class="page-header">
+        <button class="back-button" onclick="goToDashboard()">
+            <span class="back-arrow">←</span> Back to Dashboard
+        </button>
+        <h2>Upload Marks</h2>
+    </div>
+
+    <div class="selection-container">
+        <div class="card-container">
+            <div class="card" onclick="location.href='upload_theory_marks.html'">
+                <div class="card-icon theory-icon">T</div>
+                <h3>Upload Marks for Theory</h3>
+                <p>Upload class test, mid-term, attendance and sessional marks for theory subjects</p>
+            </div>
+            
+            <div class="card" onclick="location.href='upload_practical_marks.html'">
+                <div class="card-icon practical-icon">P</div>
+                <h3>Upload Marks for Practical</h3>
+                <p>Upload lab performance, lab record, viva and exam marks for practical subjects</p>
+            </div>
+
+            <div class="card" onclick="location.href='additional_marks.html'">
+                <div class="card-icon additional-icon">A</div>
+                <h3>Upload Additional Marks</h3>
+                <p>Upload marks for additional subjects</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to go to dashboard
+        function goToDashboard() {
+            window.location.href = 'admin_dashboard.php';
+        }
+    </script>
+</body>
+</html>

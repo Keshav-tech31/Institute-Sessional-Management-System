@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Marks View</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="CSS/student_view_marks.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-graduation-cap"></i> Institute Sessional Management System</h1>
+            <h2>Student Marks Dashboard</h2>
+        </header>
+
+        <div class="user-info">
+            <div class="student-details">
+                <div class="profile-pic">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="details">
+                    <h3 id="student-name">Loading...</h3>
+                    <p>Roll No: <span id="roll-no">Loading...</span></p>
+                    <p>Semester: <span id="semester">Loading...</span></p>
+                </div>
+            </div>
+            <div class="selector">
+                <label for="semester-select">Select Semester:</label>
+                <select id="semester-select">
+                    <!-- Options will be loaded dynamically -->
+                </select>
+            </div>
+        </div>
+
+        <div class="marks-tabs">
+            <button class="tab-btn active" data-tab="theory">Theory Marks</button>
+            <button class="tab-btn" data-tab="practical">Practical Marks</button>
+            <button class="tab-btn" data-tab="projects">Projects</button>
+            <button class="tab-btn" data-tab="other">Other Assessments</button>
+        </div>
+
+        <div class="tab-content">
+            <!-- Theory Marks Tab -->
+            <div id="theory" class="tab-pane active">
+                <h3>Theory Subjects</h3>
+                <div class="info-box">
+                    <p><i class="fas fa-info-circle"></i> Theory marks distribution: Class Test (30), Mid-Term (50), Attendance (20)</p>
+                </div>
+                <div class="marks-table-container">
+                    <table class="marks-table">
+                        <thead>
+                            <tr>
+                                <th>Subject Code</th>
+                                <th>Subject Name</th>
+                                <th>Class Test<br><small>(30)</small></th>
+                                <th>Mid Term<br><small>(50)</small></th>
+                                <th>Attendance<br><small>(20)</small></th>
+                                <th>Total<br><small>(100)</small></th>
+                                <th>Sessional<br><small>(30)</small></th>
+                            </tr>
+                        </thead>
+                        <tbody id="theory-marks-body">
+                            <!-- Data will be loaded dynamically -->
+                            <tr class="loading-row">
+                                <td colspan="7">Loading marks data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Practical Marks Tab -->
+            <div id="practical" class="tab-pane">
+                <h3>Practical Subjects</h3>
+                <div class="info-box">
+                    <p><i class="fas fa-info-circle"></i> Practical marks distribution: Practical Viva (30), Practical File (50), Attendance (20)</p>
+                </div>
+                <div class="marks-table-container">
+                    <table class="marks-table">
+                        <thead>
+                            <tr>
+                                <th>Subject Code</th>
+                                <th>Subject Name</th>
+                                <th>Practical Viva<br><small>(30)</small></th>
+                                <th>Practical File<br><small>(50)</small></th>
+                                <th>Attendance<br><small>(20)</small></th>
+                                <th>Total<br><small>(100)</small></th>
+                                <th>Practical<br><small>(30)</small></th>
+                            </tr>
+                        </thead>
+                        <tbody id="practical-marks-body">
+                            <!-- Data will be loaded dynamically -->
+                            <tr class="loading-row">
+                                <td colspan="7">Loading marks data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Projects Tab -->
+            <div id="projects" class="tab-pane">
+                <h3>Project Work</h3>
+                
+                <!-- Minor Project -->
+                <div class="project-section">
+                    <h4>Minor Project</h4>
+                    <div class="info-box">
+                        <p><i class="fas fa-info-circle"></i> Minor project marks distribution: First Review (10), Second Review (10), Viva (10), Practical Work (10), Attendance (20)</p>
+                    </div>
+                    <div class="marks-table-container">
+                        <table class="marks-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject Code</th>
+                                    <th>Subject Name</th>
+                                    <th>First Review<br><small>(10)</small></th>
+                                    <th>Second Review<br><small>(10)</small></th>
+                                    <th>Viva<br><small>(10)</small></th>
+                                    <th>Practical Work<br><small>(10)</small></th>
+                                    <th>Attendance<br><small>(20)</small></th>
+                                    <th>Total<br><small>(50)</small></th>
+                                </tr>
+                            </thead>
+                            <tbody id="minor-project-body">
+                                <!-- Data will be loaded dynamically -->
+                                <tr class="loading-row">
+                                    <td colspan="8">Loading project data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Major Project -->
+                <div class="project-section">
+                    <h4>Major Project</h4>
+                    <div class="info-box">
+                        <p><i class="fas fa-info-circle"></i> Major project marks distribution: First Review (10), Second Review (10), Viva (10), Practical Work (15), Attendance (20)</p>
+                    </div>
+                    <div class="marks-table-container">
+                        <table class="marks-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject Code</th>
+                                    <th>Subject Name</th>
+                                    <th>First Review<br><small>(10)</small></th>
+                                    <th>Second Review<br><small>(10)</small></th>
+                                    <th>Viva<br><small>(10)</small></th>
+                                    <th>Practical Work<br><small>(15)</small></th>
+                                    <th>Attendance<br><small>(20)</small></th>
+                                    <th>Total<br><small>(55)</small></th>
+                                </tr>
+                            </thead>
+                            <tbody id="major-project-body">
+                                <!-- Data will be loaded dynamically -->
+                                <tr class="loading-row">
+                                    <td colspan="8">Loading project data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other Assessments Tab -->
+            <div id="other" class="tab-pane">
+                <h3>Other Assessments</h3>
+                
+                <!-- Industrial Exposure -->
+                <div class="other-section">
+                    <h4>Industrial Exposure</h4>
+                    <div class="info-box">
+                        <p><i class="fas fa-info-circle"></i> Industrial Exposure Assessment (25 marks)</p>
+                    </div>
+                    <div class="marks-table-container">
+                        <table class="marks-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject Code</th>
+                                    <th>Subject Name</th>
+                                    <th>Industrial Exposure<br><small>(25)</small></th>
+                                </tr>
+                            </thead>
+                            <tbody id="industrial-exposure-body">
+                                <!-- Data will be loaded dynamically -->
+                                <tr class="loading-row">
+                                    <td colspan="3">Loading assessment data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- General Proficiency -->
+                <div class="other-section">
+                    <h4>General Proficiency</h4>
+                    <div class="info-box">
+                        <p><i class="fas fa-info-circle"></i> General Proficiency Assessment (25 marks)</p>
+                    </div>
+                    <div class="marks-table-container">
+                        <table class="marks-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject Code</th>
+                                    <th>Subject Name</th>
+                                    <th>General Proficiency<br><small>(25)</small></th>
+                                </tr>
+                            </thead>
+                            <tbody id="general-proficiency-body">
+                                <!-- Data will be loaded dynamically -->
+                                <tr class="loading-row">
+                                    <td colspan="3">Loading assessment data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Industrial Training -->
+                <div class="other-section">
+                    <h4>Industrial Training</h4>
+                    <div class="info-box">
+                        <p><i class="fas fa-info-circle"></i> Industrial Training Assessment (30 marks)</p>
+                    </div>
+                    <div class="marks-table-container">
+                        <table class="marks-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject Code</th>
+                                    <th>Subject Name</th>
+                                    <th>Industrial Training<br><small>(30)</small></th>
+                                </tr>
+                            </thead>
+                            <tbody id="industrial-training-body">
+                                <!-- Data will be loaded dynamically -->
+                                <tr class="loading-row">
+                                    <td colspan="3">Loading training data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Institute Sessional Management System. All rights reserved.</p>
+    </footer>
+
+    <script src="student_view_marks.js"></script>
+</body>
+</html>

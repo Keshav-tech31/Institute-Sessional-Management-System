@@ -1,0 +1,437 @@
+/* Reset and Color Variables */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #4285f4;    /* Google Blue */
+    --text-color: #202124;       /* Google Dark Gray for text */
+    --secondary-color: #5f6368;  /* Google Gray for secondary text */
+    --background-color: #ffffff; /* Clean white background */
+    --border-color: #dadce0;     /* Google border color */
+    --hover-color: #1a73e8;      /* Darker blue for hover */
+    --error-color: #d93025;      /* Google red for errors */
+    --success-color: #34a853;    /* Google green for success */
+    --table-header-bg: #f1f3f4;  /* Light gray for table headers */
+    --table-row-hover: #f8f9fa;  /* Very light gray for table row hover */
+    --delete-button-color: #ea4335; /* Google red for delete button */
+}
+
+/* Typography and Global Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f1f3f4;
+    color: var(--text-color);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+/* Page Header */
+.page-header {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.back-button {
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.back-button:hover {
+    background-color: rgba(66, 133, 244, 0.1);
+}
+
+.back-arrow {
+    margin-right: 8px;
+}
+
+/* Typography */
+h2 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: 2rem;
+    text-align: center;
+}
+
+h3 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Container Layout */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Form Container */
+.form-container, .list-container {
+    background-color: var(--background-color);
+    padding: 30px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Form Styles */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    margin-bottom: 4px;
+    display: block;
+}
+
+input, select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+small {
+    color: var(--secondary-color);
+    margin-top: 4px;
+    font-size: 0.8rem;
+}
+
+/* Message States */
+.checking-message {
+    color: var(--primary-color);
+    font-size: 0.85em;
+    display: none;
+    margin-top: 5px;
+}
+
+.error-message {
+    color: var(--error-color);
+    font-size: 0.85em;
+    display: none;
+    margin-top: 5px;
+}
+
+.success-message {
+    color: var(--success-color);
+    font-size: 0.85em;
+    display: none;
+    margin-top: 5px;
+}
+
+.error-field {
+    border: 1px solid var(--error-color) !important;
+}
+
+.success-field {
+    border: 1px solid var(--success-color) !important;
+}
+
+/* Button Styles */
+.button-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+button[type="submit"] {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    background-color: var(--primary-color);
+    color: white;
+}
+
+button[type="submit"]:hover {
+    background-color: var(--hover-color);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* Table Styles */
+.table-container {
+    overflow-x: auto;
+    margin-top: 1rem;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Poppins', sans-serif;
+}
+
+th {
+    background-color: var(--table-header-bg);
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border-color);
+}
+
+td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+tr:hover {
+    background-color: var(--table-row-hover);
+}
+
+.delete-button {
+    padding: 6px 12px;
+    background-color: var(--delete-button-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.delete-button:hover {
+    background-color: #c62828;
+}
+
+/* Filter Controls */
+.filter-controls {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.filter-controls label {
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+.filter-controls select {
+    min-width: 200px;
+    max-width: 100%;
+}
+
+/* Table Status Rows */
+.loading-row, .empty-row, .error-row {
+    text-align: center;
+    padding: 20px;
+    color: var(--secondary-color);
+}
+
+.error-row {
+    color: var(--error-color);
+}
+
+/* Popup */
+.popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.popup-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 30px;
+    border-radius: 5px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    max-width: 90%;
+    width: 400px;
+}
+
+.popup-content h3 {
+    margin-top: 0;
+    color: var(--text-color);
+}
+
+.popup-content p {
+    margin: 1rem 0;
+    color: var(--secondary-color);
+}
+
+.popup-content button {
+    padding: 10px 20px;
+    margin: 10px 5px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.add-more-btn {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.go-home-btn {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.delete-btn {
+    background-color: var(--delete-button-color);
+    color: white;
+}
+
+.cancel-btn {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media screen and (max-width: 992px) {
+    .container {
+        gap: 1.5rem;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    body {
+        padding: 15px;
+    }
+
+    .form-container, .list-container {
+        padding: 20px 15px;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    h3 {
+        font-size: 1.2rem;
+    }
+
+    .page-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .filter-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-controls select {
+        width: 100%;
+        min-width: auto;
+    }
+
+    .back-button {
+        align-self: center;
+        margin-bottom: 10px;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    table {
+        min-width: 300px;
+    }
+
+    .popup-content {
+        width: 90%;
+        padding: 20px;
+    }
+}
+
+/* Ultra Small Devices */
+@media screen and (max-width: 375px) {
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        gap: 1rem;
+    }
+
+    .form-container, .list-container {
+        padding: 15px 10px;
+    }
+
+    h2 {
+        font-size: 1.3rem;
+    }
+
+    h3 {
+        font-size: 1rem;
+    }
+
+    input, select, button {
+        font-size: 0.9rem;
+        padding: 10px 12px;
+    }
+}

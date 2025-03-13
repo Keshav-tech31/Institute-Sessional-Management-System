@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Student</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/delete_student.css">
+</head>
+<body>
+    <div class="page-header">
+        <button class="back-button" onclick="goToDashboard()">
+            <span class="back-arrow">←</span> Back to Dashboard
+        </button>
+        <h2>Delete Student</h2>
+    </div>
+
+    <div class="form-container">
+        <!-- Search section -->
+        <div class="search-section">
+            <h3>Search Student by Roll Number</h3>
+            <div class="search-group">
+                <input type="text" id="search_roll_no" placeholder="Enter Roll Number" required>
+                <button id="searchBtn" onclick="searchStudent()">Search</button>
+            </div>
+            <div id="search_message" class="message"></div>
+        </div>
+
+        <!-- Student details section (initially hidden) -->
+        <div id="student_details" class="student-details">
+            <h3>Student Details</h3>
+            <div class="details-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Name:</span>
+                    <span id="student_name" class="detail-value"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Roll No:</span>
+                    <span id="roll_no" class="detail-value"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Branch:</span>
+                    <span id="branch_name" class="detail-value"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Semester:</span>
+                    <span id="semester" class="detail-value"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Date of Birth:</span>
+                    <span id="dob" class="detail-value"></span>
+                </div>
+            </div>
+            <div class="delete-container">
+                <button id="deleteBtn" class="delete-btn" onclick="confirmDelete()">Delete Student</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content">
+            <h3>Confirm Deletion</h3>
+            <p>Are you sure you want to delete this student? This action cannot be undone.</p>
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+                <button class="confirm-btn" onclick="deleteStudent()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <h3>Student Deleted Successfully!</h3>
+            <div class="modal-buttons">
+                <button class="delete-more-btn" onclick="deleteMoreStudents()">Delete More Students</button>
+                <button class="go-home-btn" onclick="goToHome()">Go to Home</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentStudentData = null;
+        let currentSemesterTable = null;
+
+        // Search for student by roll number
+        function searchStudent() {
+            const rollNo = document.getElementById('search_roll_no').value.trim();
+            const searchMessage = document.getElementById('search_message');
+            
+            if (rollNo === '') {
+                searchMessage.textContent = 'Please enter a roll number.';
+                searchMessage.className = 'message error-message';
+                return;
+            }
+            
+            // Show loading message
+            searchMessage.textContent = 'Searching...';
+            searchMessage.className = 'message checking-message';
+            
+            // Make AJAX request to search for the student
+            fetch(`PHP Script/delete_student.php?search_roll=${rollNo}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Student found, show details
+                        searchMessage.textContent = 'Student found!';
+                        searchMessage.className = 'message success-message';
+                        
+                        // Store student data for later use
+                        currentStudentData = data.student;
+                        currentSemesterTable = data.table;
+                        
+                        // Populate student details
+                        document.getElementById('student_name').textContent = data.student.student_name;
+                        document.getElementById('roll_no').textContent = data.student.roll_no;
+                        document.getElementById('branch_name').textContent = data.student.branch_name;
+                        
+                        // Convert semester table name to roman numeral
+                        let semesterNum = data.table.replace('semester_', '');
+                        document.getElementById('semester').textContent = semesterNum;
+                        
+                        // Format date if available
+                        if (data.student.dob && data.student.dob !== '0000-00-00') {
+                            const date = new Date(data.student.dob);
+                            document.getElementById('dob').textContent = date.toLocaleDateString();
+                        } else {
+                            document.getElementById('dob').textContent = 'Not provided';
+                        }
+                        
+                        // Show details section
+                        document.getElementById('student_details').style.display = 'block';
+                    } else {
+                        // Student not found
+                        searchMessage.textContent = 'Student not found. Please check the roll number.';
+                        searchMessage.className = 'message error-message';
+                        document.getElementById('student_details').style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    searchMessage.textContent = 'An error occurred while searching.';
+                    searchMessage.className = 'message error-message';
+                });
+        }
+        
+        // Show confirmation modal
+        function confirmDelete() {
+            document.getElementById('confirmationModal').style.display = 'block';
+        }
+        
+        // Close modal
+        function closeModal() {
+            document.getElementById('confirmationModal').style.display = 'none';
+        }
+        
+        // Delete student
+        function deleteStudent() {
+            // First close confirmation modal
+            closeModal();
+            
+            // Create form data for deletion
+            const formData = new FormData();
+            formData.append('delete_student', 'true');
+            formData.append('roll_no', currentStudentData.roll_no);
+            formData.append('table', currentSemesterTable);
+            
+            // Make AJAX request to delete the student
+            fetch('PHP Script/delete_student.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Show success modal
+                    document.getElementById('successModal').style.display = 'block';
+                    // Hide details section
+                    document.getElementById('student_details').style.display = 'none';
+                    // Clear search field
+                    document.getElementById('search_roll_no').value = '';
+                    document.getElementById('search_message').textContent = '';
+                } else {
+                    // Show error message
+                    const searchMessage = document.getElementById('search_message');
+                    searchMessage.textContent = 'Error: ' + data.message;
+                    searchMessage.className = 'message error-message';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const searchMessage = document.getElementById('search_message');
+                searchMessage.textContent = 'An error occurred during deletion.';
+                searchMessage.className = 'message error-message';
+            });
+        }
+        
+        // Reset form for deleting more students
+        function deleteMoreStudents() {
+            document.getElementById('successModal').style.display = 'none';
+            document.getElementById('search_roll_no').value = '';
+            document.getElementById('search_message').textContent = '';
+            document.getElementById('student_details').style.display = 'none';
+        }
+        
+        // Go to home page
+        function goToHome() {
+            window.location.href = 'admin_dashboard.php';
+        }
+
+        // Go to dashboard
+        function goToDashboard() {
+            window.location.href = 'manage_student.html';
+        }
+        
+        // Event listener for Enter key in search field
+        document.getElementById('search_roll_no').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchStudent();
+            }
+        });
+    </script>
+</body>
+</html>

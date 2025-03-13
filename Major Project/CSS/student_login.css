@@ -1,0 +1,241 @@
+/* Reset default styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Color palette */
+:root {
+    --primary-color: #4285f4;    /* Blue */
+    --text-color: #202124;       /* Dark Gray for text */
+    --secondary-color: #5f6368;  /* Gray for secondary text */
+    --background-color: #ffffff; /* Clean white background */
+    --border-color: #dadce0;     /* Border color */
+    --hover-color: #1a73e8;      /* Darker blue for hover */
+    --error-color: #d93025;      /* Red for errors */
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f1f3f4;
+    color: var(--text-color);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+main {
+    background-color: var(--background-color);
+    padding: 48px 40px 36px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    color: var(--primary-color);
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.login {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.input-group {
+    margin-bottom: 1rem;
+}
+
+label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--secondary-color);
+    margin-bottom: 8px;
+    display: block;
+}
+
+input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1rem;
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.1);
+}
+
+input::placeholder {
+    color: #80868b;
+    font-size: 0.9rem;
+}
+
+.forgot-password {
+    text-align: right;
+    margin-top: -0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.forgot-password a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.forgot-password a:hover {
+    color: var(--hover-color);
+    text-decoration: underline;
+}
+
+.btn {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+    gap: 1rem;
+}
+
+button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    flex: 1;
+}
+
+button:first-child {
+    background-color: transparent;
+    color: var(--primary-color);
+    border: 1px solid var(--border-color);
+}
+
+button:last-child {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+button:first-child:hover {
+    background-color: rgba(66, 133, 244, 0.1);
+    color: var(--hover-color);
+}
+
+button:last-child:hover {
+    background-color: var(--hover-color);
+}
+
+.noac {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 0.95rem;
+}
+
+.noac p {
+    color: var(--secondary-color);
+    margin-bottom: 0.5rem;
+}
+
+.noac a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.noac a:hover {
+    color: var(--hover-color);
+    text-decoration: underline;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+main {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 480px) {
+    main {
+        padding: 24px 20px;
+        margin: 20px;
+        max-width: 100%;
+        border-radius: 6px;
+    }
+
+    h1 {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .btn {
+        flex-direction: column-reverse;
+    }
+
+    button {
+        width: 100%;
+        padding: 12px;
+    }
+    
+    .input-group {
+        margin-bottom: 0.8rem;
+    }
+    
+    input {
+        padding: 10px 14px;
+    }
+}
+
+/* Medium screens */
+@media screen and (max-width: 768px) and (min-width: 481px) {
+    main {
+        padding: 40px 30px 30px;
+        max-width: 90%;
+    }
+}
+
+/* For very small screens */
+@media screen and (max-width: 350px) {
+    h1 {
+        font-size: 1.8rem;
+    }
+    
+    .forgot-password {
+        text-align: center;
+    }
+    
+    .noac {
+        font-size: 0.85rem;
+    }
+}

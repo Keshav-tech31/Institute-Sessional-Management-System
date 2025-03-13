@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/student_login.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <main>
+        <h1>Student Login</h1>
+        
+        <form class="login" id="loginForm" action="student_login.php" method="post">
+            <div class="input-group">
+                <label for="username">Username</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username"
+                    placeholder="Enter Your Username Please"
+                    required>
+            </div>
+
+            <div class="input-group">
+                <label for="rollno">Roll Number</label>
+                <input 
+                    type="text" 
+                    id="rollno" 
+                    name="rollno"
+                    placeholder="Enter Your 11-Digit Roll Number"
+                    required>
+            </div>
+
+            <div class="forgot-password">
+                <a href="#" id="forgotUsernameLink">Forgot Username?</a>
+            </div>
+
+            <div class="btn">
+                <button type="button" onclick="window.location.href='index.html'">Back</button>
+                <button type="submit">Login</button>
+            </div>
+        </form>
+
+        <div class="noac">
+            <p>Don't have registered yet?</p>
+            <a href="student_signup.html">Register Now</a>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(this);
+            formData.append('action', 'login');
+            
+            fetch('PHP Script/student_login.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                if (data.includes("Login successful")) {
+                    Swal.fire({
+                        title: "Success!",
+                        text: "Login successful!",
+                        icon: "success",
+                        confirmButtonText: "Continue"
+                    }).then(() => {
+                        window.location.href = "student_dashboard.php"; // Redirect to dashboard
+                    });
+                } else {
+                    Swal.fire({
+                        title: "Error",
+                        text: data,
+                        icon: "error",
+                        confirmButtonText: "OK"
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    title: "Error",
+                    text: "An error occurred during login",
+                    icon: "error",
+                    confirmButtonText: "OK"
+                });
+            });
+        });
+        
+        document.getElementById('forgotUsernameLink').addEventListener('click', function(event) {
+            event.preventDefault();
+            
+            Swal.fire({
+                title: "Retrieve Username",
+                html: `
+                    <div style="text-align: left; margin-bottom: 15px;">
+                        <label for="swal-input-email">Enter Your Registered Email:</label>
+                        <input id="swal-input-email" class="swal2-input" placeholder="Email">
+                    </div>
+                    <div style="text-align: left; margin-bottom: 15px;">
+                        <label for="swal-input-roll">Enter Your Roll Number:</label>
+                        <input id="swal-input-roll" class="swal2-input" placeholder="Roll Number">
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: "Find Username",
+                showLoaderOnConfirm: true,
+                preConfirm: () => {
+                    const email = document.getElementById('swal-input-email').value;
+                    const roll = document.getElementById('swal-input-roll').value;
+                    
+                    if (!email || !roll) {
+                        Swal.showValidationMessage('Please enter both email and roll number');
+                        return false;
+                    }
+                    
+                    const formData = new FormData();
+                    formData.append('email', email);
+                    formData.append('rollno', roll);
+                    formData.append('action', 'forgotUsername');
+                    
+                    return fetch('PHP Script/student_login.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            return data;
+                        }
+                        throw new Error(data.message || 'Something went wrong');
+                    });
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: "Username Found",
+                        html: `Your username is:<br><strong>${result.value.username}</strong>
+                              <br><br>Would you like to change your username?`,
+                        icon: "success",
+                        showCancelButton: true,
+                        confirmButtonText: "Change Username"
+                    }).then((changeResult) => {
+                        if (changeResult.isConfirmed) {
+                            changeUsername(result.value.user_id);
+                        }
+                    });
+                }
+            });
+        });
+        
+        function changeUsername(userId) {
+            Swal.fire({
+                title: "Change Username",
+                input: "text",
+                inputLabel: "Enter new username",
+                inputPlaceholder: "New username",
+                showCancelButton: true,
+                confirmButtonText: "Update",
+                inputValidator: (value) => {
+                    if (!value) {
+                        return "Please enter a new username";
+                    }
+                    if (value.length < 4) {
+                        return "Username must be at least 4 characters";
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = new FormData();
+                    formData.append('user_id', userId);
+                    formData.append('new_username', result.value);
+                    formData.append('action', 'changeUsername');
+                    
+                    fetch('PHP Script/student_login.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            Swal.fire({
+                                title: "Success!",
+                                text: "Username changed successfully to: " + data.new_username,
+                                icon: "success",
+                                confirmButtonText: "OK"
+                            });
+                        } else {
+                            Swal.fire({
+                                title: "Error",
+                                text: data.message,
+                                icon: "error",
+                                confirmButtonText: "OK"
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire({
+                            title: "Error",
+                            text: "An error occurred while changing username",
+                            icon: "error",
+                            confirmButtonText: "OK"
+                        });
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html>

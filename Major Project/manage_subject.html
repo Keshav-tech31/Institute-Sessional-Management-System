@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Subjects</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/subject.css">
+</head>
+<body>
+    <div class="page-header">
+        <button class="back-button" onclick="goToDashboard()">
+            <span class="back-arrow">←</span> Back to Dashboard
+        </button>
+        <h2>Manage Subjects</h2>
+    </div>
+
+    <div class="selection-container">
+        <div class="card-container">
+            <div class="card" onclick="location.href='main_subject.html'">
+                <div class="card-icon main-icon">M</div>
+                <h3>Main Subjects</h3>
+                <p>Manage core curriculum subjects and their associated details</p>
+            </div>
+            
+            <div class="card" onclick="location.href='other_subject.html'">
+                <div class="card-icon other-icon">O</div>
+                <h3>Other Subjects</h3>
+                <p>Manage additional subjects and their associated details</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to go to dashboard
+        function goToDashboard() {
+            window.location.href = 'admin_dashboard.php';
+        }
+    </script>
+</body>
+</html>

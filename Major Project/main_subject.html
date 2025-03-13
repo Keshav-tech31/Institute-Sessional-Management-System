@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Subjects</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/manage_subject.css">
+</head>
+<body>
+    <div class="page-header">
+        <button class="back-button" onclick="goToDashboard()">
+            <span class="back-arrow">←</span> Back to Dashboard
+        </button>
+        <h2>Manage Subjects</h2>
+    </div>
+
+    <div class="container">
+        <!-- Add Subject Form -->
+        <div class="form-container">
+            <h3>Add New Subject</h3>
+            <form id="subjectForm" action="PHP Script/manage_subject.php" method="post">
+                <div class="form-group">
+                    <label for="subject_name">Subject Name</label>
+                    <input type="text" name="subject_name" id="subject_name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="subject_code">Subject Code</label>
+                    <input type="text" name="subject_code" id="subject_code" required>
+                    <div id="code_checking" class="checking-message">Checking subject code availability...</div>
+                    <div id="code_error" class="error-message">This subject code already exists in the database.</div>
+                    <div id="code_success" class="success-message">Subject code is available.</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="subject_type">Subject Type</label>
+                    <select name="subject_type" id="subject_type" required>
+                        <option value="#">Select Subject Type</option>
+                        <option value="THEORY_PRACTICAL">Theory + Practical</option>
+                        <option value="THEORY_ONLY">Theory Only</option>
+                        <option value="PRACTICAL_ONLY">Practical Only</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="semester">Semester</label>
+                    <select name="semester" id="semester" required>
+                        <option value="#">Select Semester</option>
+                        <option value="III">Third Semester</option>
+                        <option value="IV">Fourth Semester</option>
+                        <option value="V">Fifth Semester</option>
+                        <option value="VI">Sixth Semester</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="credits">Total Credits</label>
+                    <input type="number" name="credits" id="credits" min="1" max="10" required>
+                </div>
+
+                <div class="button-container">
+                    <button type="submit" id="submitBtn">Add Subject</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Subject List -->
+        <div class="list-container">
+            <h3>Subject List</h3>
+            <div class="filter-controls">
+                <label for="semesterFilter">Filter by Semester:</label>
+                <select id="semesterFilter" onchange="loadSubjects()">
+                    <option value="all">All Semesters</option>
+                    <option value="III">Third Semester</option>
+                    <option value="IV">Fourth Semester</option>
+                    <option value="V">Fifth Semester</option>
+                    <option value="VI">Sixth Semester</option>
+                </select>
+
+                <label for="subjectTypeFilter">Filter by Subject Type:</label>
+                <select id="subjectTypeFilter" onchange="loadSubjects()">
+                    <option value="all">All Types</option>
+                    <option value="THEORY_PRACTICAL">Theory + Practical</option>
+                    <option value="THEORY_ONLY">Theory Only</option>
+                    <option value="PRACTICAL_ONLY">Practical Only</option>
+                </select>
+            </div>
+            <div class="table-container">
+                <table id="subjectsTable">
+                    <thead>
+                        <tr>
+                            <th>Subject Code</th>
+                            <th>Subject Name</th>
+                            <th>Subject Type</th>
+                            <th>Semester</th>
+                            <th>Total Credits</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subjectsTableBody">
+                        <!-- Subject data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Popup -->
+    <div id="successPopup" class="popup">
+        <div class="popup-content">
+            <h3>Subject Added Successfully!</h3>
+            <button class="add-more-btn" onclick="addMoreSubjects()">Add More Subjects</button>
+            <button class="go-home-btn" onclick="goToHome()">Go to Home</button>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Popup -->
+    <div id="deletePopup" class="popup">
+        <div class="popup-content">
+            <h3>Confirm Deletion</h3>
+            <p>Are you sure you want to delete this subject?</p>
+            <input type="hidden" id="deleteSubjectId" value="">
+            <button class="delete-btn" onclick="confirmDelete()">Delete</button>
+            <button class="cancel-btn" onclick="cancelDelete()">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // Variables to track validation state
+        let isSubjectCodeValid = false;
+        let codeCheckTimeout = null;
+        
+        // Check if subject code is already in use
+        document.getElementById('subject_code').addEventListener('input', function() {
+            const subjectCode = this.value.trim();
+            const codeChecking = document.getElementById('code_checking');
+            const codeError = document.getElementById('code_error');
+            const codeSuccess = document.getElementById('code_success');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            // Reset previous states
+            this.classList.remove('error-field', 'success-field');
+            codeError.style.display = 'none';
+            codeSuccess.style.display = 'none';
+            
+            if (subjectCode.length > 0) {
+                // Clear previous timeout
+                if (codeCheckTimeout) {
+                    clearTimeout(codeCheckTimeout);
+                }
+                
+                // Show checking message
+                codeChecking.style.display = 'block';
+                
+                // Set a timeout to prevent too many requests while typing
+                codeCheckTimeout = setTimeout(function() {
+                    // Make AJAX request to check subject code
+                    fetch(`PHP Script/manage_subject.php?check_code=${subjectCode}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            codeChecking.style.display = 'none';
+                            
+                            if (data.available) {
+                                // Subject code is available
+                                document.getElementById('subject_code').classList.add('success-field');
+                                codeSuccess.style.display = 'block';
+                                isSubjectCodeValid = true;
+                                submitBtn.disabled = false;
+                            } else {
+                                // Subject code already exists
+                                document.getElementById('subject_code').classList.add('error-field');
+                                codeError.style.display = 'block';
+                                isSubjectCodeValid = false;
+                                submitBtn.disabled = true;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            codeChecking.style.display = 'none';
+                        });
+                }, 500); // Wait 500ms after user stops typing
+            } else {
+                codeChecking.style.display = 'none';
+                isSubjectCodeValid = false;
+                submitBtn.disabled = false; // Enable button, but form won't submit due to required attribute
+            }
+        });
+        
+        // Submit form using AJAX
+        document.getElementById('subjectForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const subjectCode = document.getElementById('subject_code').value.trim();
+            
+            if (subjectCode === '') {
+                alert('Please enter a subject code.');
+                return false;
+            }
+            
+            // Check subject code one more time before submission
+            fetch(`PHP Script/manage_subject.php?check_code=${subjectCode}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.available) {
+                        // Subject code is available, proceed with form submission
+                        var formData = new FormData(document.getElementById('subjectForm'));
+                        
+                        fetch('PHP Script/manage_subject.php', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                // Show success popup
+                                document.getElementById('successPopup').style.display = 'block';
+                                // Reload subject list
+                                loadSubjects();
+                            } else {
+                                alert('Error: ' + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                    } else {
+                        // Subject code is not available
+                        alert('This subject code is already in use. Please use a different subject code.');
+                        document.getElementById('subject_code').classList.add('error-field');
+                        document.getElementById('code_error').style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+        
+        // Load subjects when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSubjects();
+        });
+        
+        // Function to load subjects
+        function loadSubjects() {
+            const semesterFilter = document.getElementById('semesterFilter').value;
+            const subjectTypeFilter = document.getElementById('subjectTypeFilter').value;
+            const tableBody = document.getElementById('subjectsTableBody');
+            
+            // Show loading state
+            tableBody.innerHTML = '<tr><td colspan="6" class="loading-row">Loading subjects...</td></tr>';
+            
+            fetch(`PHP Script/manage_subject.php?action=list&semester=${semesterFilter}&subject_type=${subjectTypeFilter}`)
+                .then(response => response.json())
+                .then(data => {
+                    tableBody.innerHTML = '';
+                    
+                    if (data.status === 'success') {
+                        if (data.subjects.length === 0) {
+                            tableBody.innerHTML = '<tr><td colspan="6" class="empty-row">No subjects found</td></tr>';
+                        } else {
+                            data.subjects.forEach(subject => {
+                                tableBody.innerHTML += `
+                                    <tr>
+                                        <td>${subject.subject_code}</td>
+                                        <td>${subject.subject_name}</td>
+                                        <td>${subject.subject_type.replace('_', ' ')}</td>
+                                        <td>${subject.semester}</td>
+                                        <td>${subject.credits}</td>
+                                        <td>
+                                            <button class="delete-button" onclick="showDeletePopup('${subject.id}')">Delete</button>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                        }
+                    } else {
+                        tableBody.innerHTML = `<tr><td colspan="6" class="error-row">${data.message}</td></tr>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    tableBody.innerHTML = '<tr><td colspan="6" class="error-row">Error loading subjects</td></tr>';
+                });
+        }
+        
+        // Function to show delete confirmation popup
+        function showDeletePopup(subjectId) {
+            document.getElementById('deleteSubjectId').value = subjectId;
+            document.getElementById('deletePopup').style.display = 'block';
+        }
+        
+        // Function to confirm delete
+        function confirmDelete() {
+            const subjectId = document.getElementById('deleteSubjectId').value;
+            
+            fetch(`PHP Script/manage_subject.php?action=delete&id=${subjectId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('deletePopup').style.display = 'none';
+                
+                if (data.status === 'success') {
+                    // Reload subject list
+                    loadSubjects();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('deletePopup').style.display = 'none';
+                alert('Error deleting subject');
+            });
+        }
+        
+        // Function to cancel delete
+        function cancelDelete() {
+            document.getElementById('deletePopup').style.display = 'none';
+        }
+        
+        // Function to add more subjects
+        function addMoreSubjects() {
+            // Reset form
+            document.getElementById('subjectForm').reset();
+            // Hide popup
+            document.getElementById('successPopup').style.display = 'none';
+            // Reset validation states
+            document.getElementById('subject_code').classList.remove('error-field', 'success-field');
+            document.getElementById('code_error').style.display = 'none';
+            document.getElementById('code_success').style.display = 'none';
+            document.getElementById('code_checking').style.display = 'none';
+            document.getElementById('submitBtn').disabled = false;
+            isSubjectCodeValid = false;
+        }
+        
+        // Function to go to home page
+        function goToHome() {
+            window.location.href = 'admin_dashboard.php';
+        }
+
+        // Function to go to dashboard
+        function goToDashboard() {
+            window.location.href = 'manage_subject.html';
+        }
+    </script>
+</body>
+</html>

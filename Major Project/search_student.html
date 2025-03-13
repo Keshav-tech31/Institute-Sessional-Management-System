@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Students</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/search_student.css">
+</head>
+<body>
+    <div class="page-header">
+        <button class="back-button" onclick="goToDashboard()">
+            <span class="back-arrow">←</span> Back to Dashboard
+        </button>
+        <h2>Search Students</h2>
+    </div>
+
+    <div class="container">
+        <div class="search-container">
+            <form id="search_form" class="search-form">
+                <div class="form-group">
+                    <label for="name_search">Student Name</label>
+                    <input type="text" id="name_search" name="name_search" placeholder="Enter student name">
+                </div>
+                <div class="form-group">
+                    <label for="roll_search">Roll Number</label>
+                    <input type="text" id="roll_search" name="roll_search" placeholder="Enter roll number">
+                </div>
+                <div class="form-group">
+                    <label for="branch_search">Branch</label>
+                    <select id="branch_search" name="branch_search">
+                        <option value="">All Branches</option>
+                        <option value="CSE">Computer Science & Engineering</option>
+                        <!-- Add more branches as needed -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="semester_search">Semester</label>
+                    <select id="semester_search" name="semester_search">
+                        <option value="">All Semesters</option>
+                        <option value="III">Third Semester</option>
+                        <option value="IV">Fourth Semester</option>
+                        <option value="V">Fifth Semester</option>
+                        <option value="VI">Sixth Semester</option>
+                    </select>
+                </div>
+            </form>
+            <div style="margin-top: 15px;">
+                <button id="search_button" class="search-button">Search</button>
+                <button id="reset_button" class="reset-button">Reset</button>
+            </div>
+        </div>
+
+        <div class="results-container">
+            <div class="results-header">Search Results</div>
+            <div id="loading" class="loading" style="display: none;">Searching for students...</div>
+            <div id="no_results" class="no-results" style="display: none;">No students found matching your search criteria.</div>
+            
+            <div id="results_table" class="results-table" style="display: none;">
+                <div class="table-header">
+                    <div class="header-cell">Name</div>
+                    <div class="header-cell">Roll Number</div>
+                    <div class="header-cell">Branch</div>
+                    <div class="header-cell">Semester</div>
+                    <div class="header-cell">Date of Birth</div>
+                </div>
+                <div id="students_list" class="table-body">
+                    <!-- Student rows will be inserted here dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for mobile view details -->
+    <div id="student_modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Student Details</h3>
+            <div class="student-details" id="modal_content">
+                <!-- Student details will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Search button click handler
+            document.getElementById('search_button').addEventListener('click', function() {
+                searchStudents();
+            });
+            
+            // Reset button click handler
+            document.getElementById('reset_button').addEventListener('click', function() {
+                document.getElementById('search_form').reset();
+                clearResults();
+            });
+            
+            // Enter key in form submits search
+            document.getElementById('search_form').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchStudents();
+                }
+            });
+            
+            // Close modal when clicking X
+            document.querySelector('.close').addEventListener('click', function() {
+                document.getElementById('student_modal').style.display = 'none';
+            });
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', function(event) {
+                if (event.target == document.getElementById('student_modal')) {
+                    document.getElementById('student_modal').style.display = 'none';
+                }
+            });
+        });
+        
+        function searchStudents() {
+            const nameSearch = document.getElementById('name_search').value.trim();
+            const rollSearch = document.getElementById('roll_search').value.trim();
+            const branchSearch = document.getElementById('branch_search').value;
+            const semesterSearch = document.getElementById('semester_search').value;
+            
+            // Ensure at least one search parameter is provided
+            if (!nameSearch && !rollSearch && !branchSearch && !semesterSearch) {
+                alert('Please enter at least one search criterion');
+                return;
+            }
+            
+            // Show loading indicator
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results_table').style.display = 'none';
+            document.getElementById('no_results').style.display = 'none';
+            
+            // Prepare query parameters
+            const params = new URLSearchParams();
+            if (nameSearch) params.append('name', nameSearch);
+            if (rollSearch) params.append('roll_no', rollSearch);
+            if (branchSearch) params.append('branch', branchSearch);
+            if (semesterSearch) params.append('semester', semesterSearch);
+            
+            // Make AJAX request to search students
+            fetch(`PHP Script/search_student.php?${params.toString()}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loading indicator
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    if (data.status === 'success' && data.students && data.students.length > 0) {
+                        // Show results table
+                        document.getElementById('results_table').style.display = 'block';
+                        
+                        // Clear previous results
+                        const studentsList = document.getElementById('students_list');
+                        studentsList.innerHTML = '';
+                        
+                        // Add student rows
+                        data.students.forEach(student => {
+                            const studentRow = document.createElement('div');
+                            studentRow.className = 'table-row';
+                            
+                            studentRow.innerHTML = `
+                                <div class="table-cell">${student.student_name}</div>
+                                <div class="table-cell">${student.roll_no}</div>
+                                <div class="table-cell">${student.branch_name}</div>
+                                <div class="table-cell">${student.semester}</div>
+                                <div class="table-cell">${formatDate(student.dob)}</div>
+                            `;
+                            
+                            // Add click event for mobile view
+                            studentRow.addEventListener('click', function() {
+                                // Only show modal on mobile devices
+                                if (window.innerWidth <= 768) {
+                                    showStudentDetails(student);
+                                }
+                            });
+                            
+                            studentsList.appendChild(studentRow);
+                        });
+                    } else {
+                        // Show no results message
+                        document.getElementById('no_results').style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('loading').style.display = 'none';
+                    alert('An error occurred while searching for students.');
+                });
+        }
+        
+        function clearResults() {
+            document.getElementById('results_table').style.display = 'none';
+            document.getElementById('no_results').style.display = 'none';
+        }
+        
+        function showStudentDetails(student) {
+            const modalContent = document.getElementById('modal_content');
+            modalContent.innerHTML = `
+                <div class="detail-row">
+                    <div class="detail-label">Name:</div>
+                    <div class="detail-value">${student.student_name}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Roll Number:</div>
+                    <div class="detail-value">${student.roll_no}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Branch:</div>
+                    <div class="detail-value">${student.branch_name}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Semester:</div>
+                    <div class="detail-value">${student.semester}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Date of Birth:</div>
+                    <div class="detail-value">${formatDate(student.dob)}</div>
+                </div>
+            `;
+            
+            document.getElementById('student_modal').style.display = 'block';
+        }
+        
+        // Helper function to format date
+        function formatDate(dateString) {
+            if (!dateString) return 'Not specified';
+            
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+        
+        // Function to go to dashboard
+        function goToDashboard() {
+            window.location.href = 'manage_student.html';
+        }
+    </script>
+</body>
+</html>

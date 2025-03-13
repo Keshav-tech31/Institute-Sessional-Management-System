@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Theory Marks</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="CSS/theory_marks.css" />
+  </head>
+  <body>
+    <div class="page-header">
+      <button class="back-button" onclick="goToMarkSelection()">
+        <span class="back-arrow">←</span> Back to Upload Marks
+      </button>
+      <h2>Manage Theory Marks</h2>
+    </div>
+
+    <div class="container">
+      <!-- Selection Form -->
+      <div class="selection-form">
+        <form id="selectionForm">
+          <div class="form-group">
+            <label for="semester">Select Semester</label>
+            <select
+              name="semester"
+              id="semester"
+              required
+              onchange="loadSubjects()"
+            >
+              <option value="">Select Semester</option>
+              <option value="III">Third Semester</option>
+              <option value="IV">Fourth Semester</option>
+              <option value="V">Fifth Semester</option>
+              <option value="VI">Sixth Semester</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="subject">Select Subject</label>
+            <select
+              name="subject"
+              id="subject"
+              required
+              disabled
+              onchange="loadStudents()"
+            >
+              <option value="">Select Subject</option>
+              <!-- Subjects will be loaded dynamically -->
+            </select>
+          </div>
+        </form>
+      </div>
+
+      <!-- Students Marks Form -->
+      <div class="marks-container" id="marksContainer">
+        <h3>Student Marks</h3>
+        <div class="alert success-alert" id="saveSuccess">
+          Marks saved successfully!
+        </div>
+        <div class="alert error-alert" id="saveError">
+          Error saving marks. Please try again.
+        </div>
+
+        <form id="marksForm">
+          <div class="marks-table-container">
+            <table class="marks-table" id="marksTable">
+              <thead>
+                <tr>
+                  <th>Roll Number</th>
+                  <th>Student Name</th>
+                  <th>
+                    Class Test <br /><span class="max-marks">(Max: 30)</span>
+                  </th>
+                  <th>
+                    Mid Term <br /><span class="max-marks">(Max: 50)</span>
+                  </th>
+                  <th>
+                    Attendance <br /><span class="max-marks">(Max: 20)</span>
+                  </th>
+                  <th>Total <br /><span class="max-marks">(Max: 100)</span></th>
+                  <th>
+                    Sessional <br /><span class="max-marks">(Max: 30)</span>
+                  </th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="studentTableBody">
+                <!-- Student data will be loaded here -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="buttons-container">
+            <button
+              type="button"
+              id="saveButton"
+              onclick="saveMarks()"
+              disabled
+            >
+              Save Marks
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Dialog -->
+    <div id="deleteConfirmDialog" class="popup">
+      <div class="popup-content">
+        <h3>Confirm Deletion</h3>
+        <p id="deleteConfirmMessage">Are you sure you want to delete marks for this student?</p>
+        <button class="delete-btn" id="confirmDeleteBtn">Delete</button>
+        <button class="cancel-btn" id="cancelDeleteBtn">Cancel</button>
+      </div>
+    </div>
+
+    <script>
+      // Global variables
+      let selectedSemester = "";
+      let selectedSubject = "";
+      let isDataLoaded = false;
+
+      // Function to load subjects based on selected semester
+      function loadSubjects() {
+        const semesterSelect = document.getElementById("semester");
+        const subjectSelect = document.getElementById("subject");
+        selectedSemester = semesterSelect.value;
+
+        // Reset subject dropdown
+        subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+        subjectSelect.disabled = true;
+
+        // Reset marks form
+        document.getElementById("studentTableBody").innerHTML = "";
+        document.getElementById("saveButton").disabled = true;
+        document.getElementById("saveSuccess").style.display = "none";
+        document.getElementById("saveError").style.display = "none";
+
+        if (selectedSemester) {
+          // Show loading state
+          subjectSelect.innerHTML =
+            '<option value="">Loading subjects...</option>';
+
+          // Fetch theory subjects for the selected semester
+          fetch(
+            `PHP Script/upload_marks.php?action=get_subjects&semester=${selectedSemester}&type=THEORY`
+          )
+            .then((response) => response.json())
+            .then((data) => {
+              subjectSelect.innerHTML =
+                '<option value="">Select Subject</option>';
+
+              if (data.status === "success") {
+                data.subjects.forEach((subject) => {
+                  const option = document.createElement("option");
+                  option.value = subject.subject_code;
+                  option.textContent = `${subject.subject_name} (${subject.subject_code})`;
+                  subjectSelect.appendChild(option);
+                });
+
+                // Enable subject dropdown
+                subjectSelect.disabled = false;
+              } else {
+                subjectSelect.innerHTML =
+                  '<option value="">No subjects found</option>';
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              subjectSelect.innerHTML =
+                '<option value="">Error loading subjects</option>';
+            });
+        }
+      }
+
+      // Function to load students based on selected semester and subject
+      function loadStudents() {
+        const subjectSelect = document.getElementById("subject");
+        const studentTableBody = document.getElementById("studentTableBody");
+        selectedSubject = subjectSelect.value;
+
+        // Reset table
+        studentTableBody.innerHTML = "";
+        document.getElementById("saveButton").disabled = true;
+        document.getElementById("saveSuccess").style.display = "none";
+        document.getElementById("saveError").style.display = "none";
+
+        if (selectedSubject) {
+          // Show loading state
+          studentTableBody.innerHTML =
+            '<tr><td colspan="7" class="loading-row">Loading students...</td></tr>';
+
+          // Fetch students for the selected semester
+          fetch(
+            `PHP Script/upload_marks.php?action=get_students&semester=${selectedSemester}&subject=${selectedSubject}`
+          )
+            .then((response) => response.json())
+            .then((data) => {
+              studentTableBody.innerHTML = "";
+
+              if (data.status === "success") {
+                if (data.students.length === 0) {
+                  studentTableBody.innerHTML =
+                    '<tr><td colspan="7" class="empty-row">No students found for this semester</td></tr>';
+                } else {
+                  // Add student rows
+                  data.students.forEach((student, index) => {
+                    const row = document.createElement("tr");
+
+                    // Add hidden input for student ID
+                    const studentIdInput = document.createElement("input");
+                    studentIdInput.type = "hidden";
+                    studentIdInput.name = `students[${index}][student_id]`;
+                    studentIdInput.value = student.id;
+                    row.appendChild(studentIdInput);
+
+                    // Add roll number cell
+                    const rollCell = document.createElement("td");
+                    rollCell.textContent = student.roll_no;
+                    const rollInput = document.createElement("input");
+                    rollInput.type = "hidden";
+                    rollInput.name = `students[${index}][roll_no]`;
+                    rollInput.value = student.roll_no;
+                    rollCell.appendChild(rollInput);
+                    row.appendChild(rollCell);
+
+                    // Add name cell with hidden input for student_name
+                    const nameCell = document.createElement("td");
+                    nameCell.textContent = student.student_name;
+                    const nameInput = document.createElement("input");
+                    nameInput.type = "hidden";
+                    nameInput.name = `students[${index}][student_name]`;
+                    nameInput.value = student.student_name;
+                    nameCell.appendChild(nameInput);
+                    row.appendChild(nameCell);
+
+                    // Add class test marks input cell
+                    const classTestCell = document.createElement("td");
+                    const classTestInput = document.createElement("input");
+                    classTestInput.type = "number";
+                    classTestInput.min = "0";
+                    classTestInput.max = "30";
+                    classTestInput.name = `students[${index}][class_test]`;
+                    classTestInput.value = student.class_test || "";
+                    classTestInput.oninput = updateTotalMarks;
+                    classTestInput.dataset.index = index;
+                    classTestCell.appendChild(classTestInput);
+                    row.appendChild(classTestCell);
+
+                    // Add mid term marks input cell
+                    const midTermCell = document.createElement("td");
+                    const midTermInput = document.createElement("input");
+                    midTermInput.type = "number";
+                    midTermInput.min = "0";
+                    midTermInput.max = "50";
+                    midTermInput.name = `students[${index}][mid_term]`;
+                    midTermInput.value = student.mid_term || "";
+                    midTermInput.oninput = updateTotalMarks;
+                    midTermInput.dataset.index = index;
+                    midTermCell.appendChild(midTermInput);
+                    row.appendChild(midTermCell);
+
+                    // Add attendance marks input cell
+                    const attendanceCell = document.createElement("td");
+                    const attendanceInput = document.createElement("input");
+                    attendanceInput.type = "number";
+                    attendanceInput.min = "0";
+                    attendanceInput.max = "20";
+                    attendanceInput.name = `students[${index}][attendance]`;
+                    attendanceInput.value = student.attendance || "";
+                    attendanceInput.oninput = updateTotalMarks;
+                    attendanceInput.dataset.index = index;
+                    attendanceCell.appendChild(attendanceInput);
+                    row.appendChild(attendanceCell);
+
+                    // Add total marks cell (calculated)
+                    const totalCell = document.createElement("td");
+                    const totalSpan = document.createElement("span");
+                    totalSpan.id = `total_${index}`;
+                    totalSpan.className = "total-marks";
+                    totalSpan.textContent = calculateTotal(
+                      student.class_test || 0,
+                      student.mid_term || 0,
+                      student.attendance || 0
+                    );
+                    totalCell.appendChild(totalSpan);
+                    row.appendChild(totalCell);
+
+                    // Add sessional marks input cell
+                    const sessionalCell = document.createElement("td");
+                    const sessionalInput = document.createElement("input");
+                    sessionalInput.type = "number";
+                    sessionalInput.min = "0";
+                    sessionalInput.max = "30";
+                    sessionalInput.name = `students[${index}][sessional]`;
+                    sessionalInput.value = student.sessional || "";
+                    sessionalCell.appendChild(sessionalInput);
+                    row.appendChild(sessionalCell);
+
+                    // Add actions cell with delete button
+                    const actionsCell = document.createElement('td');
+                    const deleteButton = document.createElement('button');
+                    deleteButton.type = 'button';
+                    deleteButton.className = 'delete-button';
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.onclick = function() { confirmDeleteMarks(student.id, student.student_name); };
+                    actionsCell.appendChild(deleteButton);
+                    row.appendChild(actionsCell);
+
+                    studentTableBody.appendChild(row);
+                  });
+
+                  // Enable save button
+                  document.getElementById("saveButton").disabled = false;
+                  isDataLoaded = true;
+                }
+              } else {
+                studentTableBody.innerHTML = `<tr><td colspan="7" class="error-row">${data.message}</td></tr>`;
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              studentTableBody.innerHTML =
+                '<tr><td colspan="7" class="error-row">Error loading students</td></tr>';
+            });
+        }
+      }
+
+      // Function to calculate total marks
+      function calculateTotal(classTest, midTerm, attendance) {
+        const classTestVal = parseFloat(classTest) || 0;
+        const midTermVal = parseFloat(midTerm) || 0;
+        const attendanceVal = parseFloat(attendance) || 0;
+
+        return (classTestVal + midTermVal + attendanceVal).toFixed(1);
+      }
+
+      // Function to update total marks when input changes
+      function updateTotalMarks() {
+        const index = this.dataset.index;
+        const row = this.closest("tr");
+
+        const classTest =
+          row.querySelector(`input[name="students[${index}][class_test]"]`)
+            .value || 0;
+        const midTerm =
+          row.querySelector(`input[name="students[${index}][mid_term]"]`)
+            .value || 0;
+        const attendance =
+          row.querySelector(`input[name="students[${index}][attendance]"]`)
+            .value || 0;
+
+        const totalSpan = document.getElementById(`total_${index}`);
+        totalSpan.textContent = calculateTotal(classTest, midTerm, attendance);
+      }
+
+      // Function to save marks
+      function saveMarks() {
+        if (!isDataLoaded) return;
+
+        document.getElementById("saveSuccess").style.display = "none";
+        document.getElementById("saveError").style.display = "none";
+
+        // Get form data
+        const formData = new FormData(document.getElementById("marksForm"));
+
+        // Add semester and subject information
+        formData.append("semester", selectedSemester);
+        formData.append("subject_code", selectedSubject);
+        formData.append("action", "save_theory_marks");
+
+        // Send data to server
+        fetch("PHP Script/upload_marks.php", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success") {
+              document.getElementById("saveSuccess").style.display = "block";
+
+              // Scroll to success message
+              document
+                .getElementById("saveSuccess")
+                .scrollIntoView({ behavior: "smooth" });
+
+              // Hide success message after 3 seconds
+              setTimeout(() => {
+                document.getElementById("saveSuccess").style.display = "none";
+              }, 3000);
+            } else {
+              document.getElementById("saveError").style.display = "block";
+              document.getElementById("saveError").textContent =
+                data.message || "Error saving marks. Please try again.";
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            document.getElementById("saveError").style.display = "block";
+            document.getElementById("saveError").textContent =
+              "Network error. Please check your connection and try again.";
+          });
+      }
+
+      // Function to go back to upload marks selection
+      function goToMarkSelection() {
+        window.location.href = "upload_marks.html";
+      }
+
+      // Delete confirmation function
+      let studentToDelete = null;
+      function confirmDeleteMarks(studentId, studentName) {
+        studentToDelete = studentId;
+        document.getElementById('deleteConfirmMessage').textContent = 
+            `Are you sure you want to delete marks for ${studentName}?`;
+        document.getElementById('deleteConfirmDialog').style.display = 'block';
+      }
+
+      function deleteMarks() {
+        if (!studentToDelete) return;
+        
+        const formData = new FormData();
+        formData.append('action', 'delete_theory_marks');
+        formData.append('semester', selectedSemester);
+        formData.append('subject_code', selectedSubject);
+        formData.append('student_id', studentToDelete);
+        
+        fetch('PHP Script/upload_marks.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                document.getElementById('saveSuccess').textContent = 'Marks deleted successfully!';
+                document.getElementById('saveSuccess').style.display = 'block';
+                // Reload students to refresh the table
+                loadStudents();
+            } else {
+                document.getElementById('saveError').textContent = data.message || 'Error deleting marks.';
+                document.getElementById('saveError').style.display = 'block';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('saveError').textContent = 'Network error. Please check your connection.';
+            document.getElementById('saveError').style.display = 'block';
+        });
+        
+        // Hide the dialog
+        document.getElementById('deleteConfirmDialog').style.display = 'none';
+        studentToDelete = null;
+      }
+
+      // Event listeners for delete confirmation dialog
+      document.getElementById('confirmDeleteBtn').addEventListener('click', deleteMarks);
+      document.getElementById('cancelDeleteBtn').addEventListener('click', function() {
+          document.getElementById('deleteConfirmDialog').style.display = 'none';
+          studentToDelete = null;
+      });
+    </script>
+  </body>
+</html>

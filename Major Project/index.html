@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Result Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="CSS/style.css" />
+    <!-- Import Lottie Player -->
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+  </head>
+  <body>
+    <header>
+      <div class="nav-buttons">
+        <a href="index.html">Home</a>
+        <a href="contactus.html">Contact us</a>
+      </div>
+    </header>
+
+    <main>
+      <div class="hero-section">
+        <div class="hero-content">
+          <h2 class="welcome-text">Welcome</h2>
+          <h1>INSTITUTE SESSIONAL MANAGEMENT SYSTEM</h1>
+          <p>Government Polytechnic Tanakpur</p>
+          <div class="cta-buttons">
+            <a href="student_login.html" class="cta-btn">Student Login</a>
+            <a href="admin_login.php" class="cta-btn secondary">Admin Login</a>
+          </div>
+        </div>
+        <div class="hero-animation">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 400" width="100%" height="100%">
+                <style>
+                    @keyframes float {
+                        0% { transform: translateY(0); }
+                        50% { transform: translateY(-15px); }
+                        100% { transform: translateY(0); }
+                    }
+                    @keyframes pulse {
+                        0% { opacity: 0.7; }
+                        50% { opacity: 1; }
+                        100% { opacity: 0.7; }
+                    }
+                    .floating { animation: float 3s ease-in-out infinite; }
+                    .pulsing { animation: pulse 2s ease-in-out infinite; }
+                </style>
+                <g class="floating">
+                    <rect x="100" y="80" width="300" height="200" rx="10" fill="#4285f4" />
+                    <rect x="120" y="100" width="260" height="20" rx="5" fill="white" opacity="0.7" />
+                    <rect x="120" y="130" width="180" height="20" rx="5" fill="white" opacity="0.7" />
+                    <rect x="120" y="160" width="220" height="20" rx="5" fill="white" opacity="0.7" />
+                    <rect x="120" y="190" width="120" height="20" rx="5" fill="white" opacity="0.7" />
+                    <rect x="120" y="220" width="180" height="30" rx="15" fill="#34a853" />
+                    <circle cx="350" cy="150" r="40" fill="#fbbc05" class="pulsing" />
+                </g>
+            </svg>
+        </div>
+      </div>
+
+      <div class="features-section">
+        <h2>Our Features</h2>
+        <div class="features-container">
+          <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" width="100%" height="150px">
+                    <style>
+                        @keyframes grow {
+                            0% { transform: scaleY(0.8); }
+                            50% { transform: scaleY(1); }
+                            100% { transform: scaleY(0.8); }
+                        }
+                        .bar { animation: grow 2s ease-in-out infinite; }
+                        .bar1 { animation-delay: 0s; }
+                        .bar2 { animation-delay: 0.2s; }
+                        .bar3 { animation-delay: 0.4s; }
+                        .bar4 { animation-delay: 0.6s; }
+                    </style>
+                    <rect x="40" y="110" width="30" height="30" rx="3" fill="#4285f4" class="bar bar1" transform-origin="40 140" />
+                    <rect x="80" y="90" width="30" height="50" rx="3" fill="#34a853" class="bar bar2" transform-origin="80 140" />
+                    <rect x="120" y="60" width="30" height="80" rx="3" fill="#fbbc05" class="bar bar3" transform-origin="120 140" />
+                    <rect x="160" y="40" width="30" height="100" rx="3" fill="#ea4335" class="bar bar4" transform-origin="160 140" />
+                    <line x1="30" y1="140" x2="170" y2="140" stroke="#202124" stroke-width="2" />
+                    <line x1="30" y1="40" x2="30" y2="140" stroke="#202124" stroke-width="2" />
+                </svg>
+            </div>
+            <h3>Result Management</h3>
+            <p>Easily manage and access your sessional results</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" width="100%" height="150px">
+                    <style>
+                        @keyframes dash {
+                            0% { stroke-dashoffset: 200; }
+                            100% { stroke-dashoffset: 0; }
+                        }
+                        .animate-line {
+                            stroke-dasharray: 200;
+                            animation: dash 3s linear infinite;
+                        }
+                    </style>
+                    <circle cx="100" cy="75" r="50" fill="none" stroke="#dadce0" stroke-width="6" />
+                    <path d="M100 25 L100 75 L135 75" fill="none" stroke="#4285f4" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" class="animate-line" />
+                    <circle cx="100" cy="75" r="10" fill="#4285f4" />
+                    <text x="80" y="15" font-family="Arial" font-size="12" fill="#5f6368">90%</text>
+                    <text x="140" y="75" font-family="Arial" font-size="12" fill="#5f6368">50%</text>
+                    <text x="80" y="140" font-family="Arial" font-size="12" fill="#5f6368">10%</text>
+                    <text x="30" y="75" font-family="Arial" font-size="12" fill="#5f6368">75%</text>
+                </svg>
+            </div>
+            <h3>Performance Analytics</h3>
+            <p>Track your academic progress over time</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" width="100%" height="150px">
+                    <style>
+                        @keyframes notify {
+                            0% { transform: scale(0.8); opacity: 0.7; }
+                            50% { transform: scale(1.1); opacity: 1; }
+                            100% { transform: scale(0.8); opacity: 0.7; }
+                        }
+                        .notification { animation: notify 2s ease-in-out infinite; }
+                    </style>
+                    <rect x="60" y="40" width="80" height="70" rx="8" fill="#4285f4" />
+                    <rect x="70" y="50" width="60" height="10" rx="2" fill="white" opacity="0.7" />
+                    <rect x="70" y="65" width="40" height="10" rx="2" fill="white" opacity="0.7" />
+                    <rect x="70" y="80" width="50" height="10" rx="2" fill="white" opacity="0.7" />
+                    <circle cx="140" cy="40" r="15" fill="#ea4335" class="notification" />
+                    <text x="136" y="45" font-family="Arial" font-size="14" fill="white" font-weight="bold">!</text>
+                </svg>
+            </div>
+            <h3>Instant Notifications</h3>
+            <p>Get notified as soon as results are published</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+        <div class="footer-animation">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 60" width="120px" height="60px">
+                <style>
+                    @keyframes wave {
+                        0% { transform: translateY(0); }
+                        50% { transform: translateY(-5px); }
+                        100% { transform: translateY(0); }
+                    }
+                    .wave1 { animation: wave 2s ease-in-out infinite; }
+                    .wave2 { animation: wave 2s ease-in-out infinite; animation-delay: 0.3s; }
+                    .wave3 { animation: wave 2s ease-in-out infinite; animation-delay: 0.6s; }
+                </style>
+                <path d="M10,40 Q30,20 50,40 T90,40" fill="none" stroke="white" stroke-width="3" class="wave1" />
+                <path d="M10,30 Q30,10 50,30 T90,30" fill="none" stroke="white" stroke-width="2" opacity="0.7" class="wave2" />
+                <path d="M10,50 Q30,30 50,50 T90,50" fill="none" stroke="white" stroke-width="2" opacity="0.5" class="wave3" />
+            </svg>
+        </div>
+      <p>
+        &copy; 2025 Institute Sessional Management System | Developed by Keshav
+        Sharma | All Rights Reserved.
+      </p>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Students</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/viewall_student.css">
+</head>
+<body>
+    <div class="page-header">
+        <button class="back-button" onclick="goToDashboard()">
+            <span class="back-arrow">←</span> Back to Dashboard
+        </button>
+        <h2>View Students</h2>
+    </div>
+
+    <div class="container">
+        <div class="filter-container">
+            <div class="filter-group">
+                <label for="branch_filter">Branch</label>
+                <select name="branch_filter" id="branch_filter">
+                    <option value="all">All Branches</option>
+                    <option value="CSE">Computer Science & Engineering</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="semester_filter">Semester</label>
+                <select name="semester_filter" id="semester_filter">
+                    <option value="all">All Semesters</option>
+                    <option value="III">Third Semester</option>
+                    <option value="IV">Fourth Semester</option>
+                    <option value="V">Fifth Semester</option>
+                    <option value="VI">Sixth Semester</option>
+                </select>
+            </div>
+            <button id="filter_button" class="filter-button">Apply Filter</button>
+        </div>
+
+        <div class="results-container">
+            <div id="loading" class="loading">Loading students data...</div>
+            <div id="no_results" class="no-results" style="display: none;">No students found for the selected criteria.</div>
+            
+            <div id="results_table" class="results-table" style="display: none;">
+                <div class="table-header">
+                    <div class="header-cell">Name of the Student</div>
+                    <div class="header-cell">Branch</div>
+                    <div class="header-cell">Semester</div>
+                    <div class="header-cell">Roll Number</div>
+                    <div class="header-cell">Date of Birth</div>
+                </div>
+                <div id="students_list" class="table-body">
+                    <!-- Student rows will be inserted here dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initial load of all students
+            loadStudents();
+            
+            // Apply filter button click handler
+            document.getElementById('filter_button').addEventListener('click', function() {
+                loadStudents();
+            });
+        });
+        
+        function loadStudents() {
+            const branchFilter = document.getElementById('branch_filter').value;
+            const semesterFilter = document.getElementById('semester_filter').value;
+            
+            // Show loading indicator
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results_table').style.display = 'none';
+            document.getElementById('no_results').style.display = 'none';
+            
+            // Prepare query parameters
+            const params = new URLSearchParams();
+            if (branchFilter !== 'all') {
+                params.append('branch', branchFilter);
+            }
+            if (semesterFilter !== 'all') {
+                params.append('semester', semesterFilter);
+            }
+            
+            // Make AJAX request to get students data
+            fetch(`PHP Script/viewall_student.php?${params.toString()}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loading indicator
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    if (data.students && data.students.length > 0) {
+                        // Show results table
+                        document.getElementById('results_table').style.display = 'block';
+                        
+                        // Clear previous results
+                        const studentsList = document.getElementById('students_list');
+                        studentsList.innerHTML = '';
+                        
+                        // Add student rows
+                        data.students.forEach(student => {
+                            const studentRow = document.createElement('div');
+                            studentRow.className = 'table-row';
+                            
+                            studentRow.innerHTML = `
+                                <div class="table-cell">${student.student_name}</div>
+                                <div class="table-cell">${student.branch_name}</div>
+                                <div class="table-cell">${student.semester}</div>
+                                <div class="table-cell">${student.roll_no}</div>
+                                <div class="table-cell">${formatDate(student.dob)}</div>
+                            `;
+                            
+                            studentsList.appendChild(studentRow);
+                        });
+                    } else {
+                        // Show no results message
+                        document.getElementById('no_results').style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('loading').style.display = 'none';
+                    alert('An error occurred while fetching students data.');
+                });
+        }
+        
+        // Helper function to format date
+        function formatDate(dateString) {
+            if (!dateString) return 'Not specified';
+            
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+        
+        // Function to go to dashboard
+        function goToDashboard() {
+            window.location.href = 'manage_student.html';
+        }
+    </script>
+</body>
+</html>
